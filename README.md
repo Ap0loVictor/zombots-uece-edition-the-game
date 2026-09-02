@@ -10,13 +10,15 @@ A definir
 ---
 ## Vídeo de demonstração
 Não há
----
+
 ## Compilação e execução
 Tem que ver
 
 ## Estrutura do projeto
 algo como:
+```
 /
 ├── assets/
 │   ├── audio/
 │   │   ├── music/ 
+```
