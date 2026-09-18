@@ -20,6 +20,14 @@ class Movement:
         self.offset_y = offset_y
 
     def check_collision(self, x, y, level=None, solid_entities=None):
+        """
+        Hook de colisão que utiliza as funções da física do motor.
+        Retorna True se houver colisão, False caso contrário.
+        """
+        # Checa colisão com o mapa (Grid) // nn funciona ainda
+        if check_grid_collision(x, y, self.hitbox_w, self.hitbox_h, self.offset_x, self.offset_y, level):
+            return True
+
         # Checa colisão com outras entidades (AABB)
         if solid_entities is not None and len(solid_entities) > 0:
             hx, hy = x + self.offset_x, y + self.offset_y
