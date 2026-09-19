@@ -1,4 +1,4 @@
-from mechanics.Physics import check_grid_collision, check_aabb_collision
+from src.mechanics.Physics import check_grid_collision, check_aabb_collision
 
 class Movement:
     """

@@ -46,6 +46,16 @@ Porém, a máquina do tempo já vem com uma configuração fixa, que o leva dire
 
 ## Como Jogar
 
+Para executar o protótipo, com Python e Pygame instalados, rode na raiz do projeto:
+
+```bash
+python3 testee.py
+```
+
+Também é possível executar como módulo: `python3 -m src.game.test`.
+Os imports usam a raiz do projeto como referência; para executar arquivos dentro de
+`src/`, use a forma de módulo (`-m`).
+
 ### Objetivo
 
 [...]

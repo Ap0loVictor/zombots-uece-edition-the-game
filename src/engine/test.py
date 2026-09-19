@@ -1,6 +1,6 @@
 import pygame
-from mechanics.entities.Player import Player
-from mechanics.entities.Rock import Rock
+from src.game.entities.Player import Player
+from src.game.entities.Rock import Rock
 from src.engine.rendering import desenhar_poligono, scanline_fill
 
 

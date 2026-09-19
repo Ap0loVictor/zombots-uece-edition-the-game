@@ -1,5 +1,5 @@
 import pygame
-from mechanics.movement.movement import Movement
+from src.game.movement.movement import Movement
 
 
 class PlayerMovement(Movement):

@@ -1,4 +1,4 @@
-from mechanics.movement.player_movement import PlayerMovement
+from src.game.movement.player_movement import PlayerMovement
 from assets.sprites.temp.TempPlayer import TemporaryPlayerSprite
 import pygame
 
