@@ -15,6 +15,12 @@ def rodar_jogo():
     pygame.display.set_caption("Zombots")
     relogio = pygame.time.Clock()
 
+    # Limites do mundo (min_x, min_y, max_x, max_y).
+    # Cima, baixo e esquerda são paredes fechadas; a direita fica como None
+    # (borda aberta), porque é por ali que o mapa vai se estender nas
+    # próximas fases do beat 'em up.
+    limites = (0, 0, None, altura)
+
     player = Player(start_x=largura // 2, start_y=altura // 2)
     pedra = Rock(200, 300)
 
@@ -28,7 +34,7 @@ def rodar_jogo():
 
         # Atualiza a entidade Player com os inputs do teclado
         keys = pygame.key.get_pressed()
-        player.update(dt, keys, solid_entities=[pedra])
+        player.update(dt, keys, solid_entities=[pedra], bounds=limites)
 
         # Fundo da tela
         tela.fill((30, 30, 45))

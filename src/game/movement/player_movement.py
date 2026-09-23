@@ -19,7 +19,7 @@ class PlayerMovement(Movement):
             offset_y=offset_y
         )
 
-    def update(self, x, y, dt, keys, level=None, solid_entities=None):
+    def update(self, x, y, dt, keys, level=None, solid_entities=None, bounds=None):
         was_moving = self.is_moving
         self.is_moving = False
         dx = 0
@@ -41,4 +41,4 @@ class PlayerMovement(Movement):
             dx += self.speed * dt
             self.direction = "right"
 
-        return self.move_axis(x, y, dx, dy, level=level, solid_entities=solid_entities)
+        return self.move_axis(x, y, dx, dy, level=level, solid_entities=solid_entities, bounds=bounds)
