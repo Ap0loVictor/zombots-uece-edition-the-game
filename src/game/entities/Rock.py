@@ -1,6 +1,7 @@
 from assets.sprites.temp.TempRock import TemporaryRockSprite
+from src.game.entities import Prop
 
-class Rock:
+class Rock(Prop):
     """
     Entidade estática representando uma parede ou pedra intransponível.
     """

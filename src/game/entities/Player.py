@@ -1,9 +1,9 @@
+from src.game.entities.Entity import Entity
 from src.game.movement.player_movement import PlayerMovement
 from assets.sprites.temp.TempPlayer import TemporaryPlayerSprite
-import pygame
 
 
-class Player:
+class Player(Entity):
     """
     Entidade do Jogador.
     Coordena posição, movimentação cardinal através de PlayerMovement
@@ -11,8 +11,7 @@ class Player:
     """
 
     def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None):
-        self.x = float(start_x)
-        self.y = float(start_y)
+        super().__init__(start_x, start_y, health=100, width=48, height=16)
 
         # Mecânica especializada de movimentação (injeção ou padrão)
         self.movement = movement if movement is not None else PlayerMovement(speed=speed, direction=direction)
@@ -29,7 +28,9 @@ class Player:
         Delega a lógica de movimentação para o componente especializado,
         permitindo colisões opcionais com level e solid_entities.
         """
-        self.x, self.y = self.movement.update(self.x, self.y, dt, keys, level=level, solid_entities=solid_entities)
+        print (self.health)
+        if self.alive == True:
+            self.x, self.y = self.movement.update(self.x, self.y, dt, keys, level=level, solid_entities=solid_entities)
 
     # ========================================================
     # PONTO DE INTERAÇÃO / MIRA
