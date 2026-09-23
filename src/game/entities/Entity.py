@@ -9,7 +9,7 @@ class Entity:
         self.health = health
         self.max_health = health
         self.alive = True
-    def recive_damage(self, damage):
+    def receive_damage(self, damage):
         self.health = self.health - damage
         if self.health < 1:
             self.alive = False

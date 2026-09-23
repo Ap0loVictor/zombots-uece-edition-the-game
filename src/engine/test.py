@@ -2,7 +2,7 @@ import pygame
 from src.game.entities.Player import Player
 from src.game.entities.Rock import Rock
 from src.engine.rendering import desenhar_poligono, scanline_fill
-
+from src.mechanics.Physics import check_aabb_collision
 
 def testeeee():
     print("so pra ver se roda")
@@ -19,7 +19,7 @@ def rodar_jogo():
     pedra = Rock(200, 300)
 
     rodando = True
-    while rodando:
+    while rodando and player.alive:
         dt = relogio.tick(60) / 1000.0  # Delta time em segundos
 
         for evento in pygame.event.get():
@@ -37,6 +37,13 @@ def rodar_jogo():
         for part in pedra.get_polygons():
             scanline_fill(tela, part["vertices"], part["color"])
             desenhar_poligono(tela, part["vertices"], part["color"])
+        
+        # Teste de colisão tirando vida
+        if check_aabb_collision(player.x,player.y,player.width,player.height,pedra.x,pedra.y,pedra.width,pedra.height):
+            player.receive_damage(pedra.damage)
+            print("Vida:", player.health)
+            if player.alive == False:
+                print("Voce morreu, seu nooob")
 
         # Renderização das partes poligonais do Player com matemática pura (Bresenham/Scanline)
         for part in player.get_polygons():

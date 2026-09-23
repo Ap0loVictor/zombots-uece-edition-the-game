@@ -28,7 +28,7 @@ class Player(Entity):
         Delega a lógica de movimentação para o componente especializado,
         permitindo colisões opcionais com level e solid_entities.
         """
-        print (self.health)
+        # print (self.health)
         if self.alive == True:
             self.x, self.y = self.movement.update(self.x, self.y, dt, keys, level=level, solid_entities=solid_entities)
 
