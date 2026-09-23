@@ -1,18 +1,14 @@
 from assets.sprites.temp.TempRock import TemporaryRockSprite
+from src.game.entities.Prop import Prop
 
-class Rock:
+class Rock(Prop):
     """
     Entidade estática representando uma parede ou pedra intransponível.
     """
     def __init__(self, x, y):
         # A posição da pedra no mundo
-        self.x = float(x)
-        self.y = float(y)
-        
-        # 32 igual os pixel da pedra
-        self.width = 32
-        self.height = 32
-        
+        super().__init__(x, y, width=32, height=32, hitbox=None)
+        self.damage = 34 # Temporário
         # Inicia o sprite
         self.sprite = TemporaryRockSprite()
         

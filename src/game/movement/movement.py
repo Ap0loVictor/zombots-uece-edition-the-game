@@ -26,7 +26,7 @@ class Movement:
         """
         # Checa colisão com o mapa (Grid) // nn funciona ainda
         if check_grid_collision(x, y, self.hitbox_w, self.hitbox_h, self.offset_x, self.offset_y, level):
-            return True
+            return None
 
         # Checa colisão com as bordas do mundo (paredes da tela)
         if check_bounds_collision(x, y, self.hitbox_w, self.hitbox_h, self.offset_x, self.offset_y, bounds):
@@ -41,7 +41,7 @@ class Movement:
                 ew = getattr(entity, 'width', 16)
                 eh = getattr(entity, 'height', 16)
                 if check_aabb_collision(hx, hy, self.hitbox_w, self.hitbox_h, ex, ey, ew, eh):
-                    return True
+                    return entity
                     
         return False
 
