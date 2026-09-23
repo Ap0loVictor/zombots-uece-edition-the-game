@@ -23,14 +23,15 @@ class Player(Entity):
     # ATUALIZAÇÃO
     # ========================================================
 
-    def update(self, dt, keys, level=None, solid_entities=None):
+    def update(self, dt, keys, level=None, solid_entities=None, bounds=None):
         """
         Delega a lógica de movimentação para o componente especializado,
-        permitindo colisões opcionais com level e solid_entities.
+        permitindo colisões opcionais com level, solid_entities e bounds (limites do mundo).
         """
+
         # print (self.health)
         if self.alive == True:
-            self.x, self.y = self.movement.update(self.x, self.y, dt, keys, level=level, solid_entities=solid_entities)
+            self.x, self.y = self.movement.update(self.x, self.y, dt, keys, level=level, solid_entities=solid_entities, bounds=bounds)
 
     # ========================================================
     # PONTO DE INTERAÇÃO / MIRA

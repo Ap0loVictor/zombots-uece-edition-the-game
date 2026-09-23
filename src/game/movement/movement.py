@@ -1,4 +1,4 @@
-from src.mechanics.Physics import check_grid_collision, check_aabb_collision
+from src.mechanics.Physics import check_grid_collision, check_bounds_collision, check_aabb_collision
 
 class Movement:
     """
@@ -19,7 +19,7 @@ class Movement:
         self.offset_x = offset_x
         self.offset_y = offset_y
 
-    def check_collision(self, x, y, level=None, solid_entities=None):
+    def check_collision(self, x, y, level=None, solid_entities=None, bounds=None):
         """
         Hook de colisão que utiliza as funções da física do motor.
         Retorna True se houver colisão, False caso contrário.
@@ -27,6 +27,10 @@ class Movement:
         # Checa colisão com o mapa (Grid) // nn funciona ainda
         if check_grid_collision(x, y, self.hitbox_w, self.hitbox_h, self.offset_x, self.offset_y, level):
             return None
+
+        # Checa colisão com as bordas do mundo (paredes da tela)
+        if check_bounds_collision(x, y, self.hitbox_w, self.hitbox_h, self.offset_x, self.offset_y, bounds):
+            return True
 
         # Checa colisão com outras entidades (AABB)
         if solid_entities is not None and len(solid_entities) > 0:
@@ -41,7 +45,7 @@ class Movement:
                     
         return False
 
-    def move_axis(self, x, y, dx, dy, level=None, solid_entities=None):
+    def move_axis(self, x, y, dx, dy, level=None, solid_entities=None, bounds=None):
         """
         Aplica deslocamento independente por eixo (X e Y), checando colisões se existirem.
         """
@@ -52,14 +56,14 @@ class Movement:
         if dx != 0:
             self.is_moving = True
             new_x = x + dx
-            if not self.check_collision(new_x, y, level, solid_entities):
+            if not self.check_collision(new_x, y, level, solid_entities, bounds):
                 x = new_x
 
         # Deslocamento no eixo Y
         if dy != 0:
             self.is_moving = True
             new_y = y + dy
-            if not self.check_collision(x, new_y, level, solid_entities):
+            if not self.check_collision(x, new_y, level, solid_entities, bounds):
                 y = new_y
 
         return x, y
