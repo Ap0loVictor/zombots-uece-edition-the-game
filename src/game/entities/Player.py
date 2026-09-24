@@ -1,6 +1,6 @@
 from src.game.entities.Entity import Entity
 from src.game.movement.player_movement import PlayerMovement
-from assets.sprites.temp.TempPlayer import TemporaryPlayerSprite
+from assets.sprites.entities.PlayerSprite import PlayerSprite
 
 
 class Player(Entity):
@@ -17,7 +17,7 @@ class Player(Entity):
         self.movement = movement if movement is not None else PlayerMovement(speed=speed, direction=direction)
 
         # Sprite visual temporário com polígonos
-        self.sprite = sprite if sprite is not None else TemporaryPlayerSprite()
+        self.sprite = sprite if sprite is not None else PlayerSprite()
 
     # ========================================================
     # ATUALIZAÇÃO

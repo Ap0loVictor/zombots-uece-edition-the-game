@@ -1,4 +1,4 @@
-from assets.sprites.temp.TempRock import TemporaryRockSprite
+from assets.sprites.entities.RockSprite import RockSprite
 from src.game.entities.Prop import Prop
 
 class Rock(Prop):
@@ -10,7 +10,7 @@ class Rock(Prop):
         super().__init__(x, y, width=32, height=32, hitbox=(2, 2, 28, 28))
         self.damage = 34 # Temporário
         # Inicia o sprite
-        self.sprite = TemporaryRockSprite()
+        self.sprite = RockSprite()
         
     def get_polygons(self):
         """

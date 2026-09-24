@@ -11,7 +11,7 @@ ROCK_POLYGON = [
     (0, 32)
 ]
 
-class TemporaryRockSprite(Sprite):
+class RockSprite(Sprite):
     def __init__(self):
         super().__init__()
         self.parts = [
