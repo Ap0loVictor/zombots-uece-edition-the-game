@@ -444,7 +444,7 @@ Zombots-UECE-Edition/
         └── [...]
 
 ```
-<h2 align="center">Project Contributors</h2>
+<h2 align="center">Colaboradores do Projeto</h2>
 <table align="center">
   <tr>
     <td align="center">
@@ -452,8 +452,8 @@ Zombots-UECE-Edition/
       <b>Gabriel Marques</b>
     </td>
     <td align="center">
-      <img src="assets/img/david_jansen.jpeg" height="250" /><br>
-      <b>David Jansen</b>
+      <img src="assets/img/Davi_Jannsen.jpeg" height="250" /><br>
+      <b>Davi Jannsen</b>
     </td>
     <td align="center">
       <img src="assets/img/apolo.jpg" height="250" /><br>
