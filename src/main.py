@@ -30,7 +30,7 @@ def rodar_jogo():
 
         # Atualiza a entidade Player com os inputs do teclado
         keys = pygame.key.get_pressed()
-        player.update(dt, keys, solid_entities=[pedra], bounds=limites)
+        player.update(dt=dt, keys=keys, solid_entities=[pedra], bounds=limites)
 
         # Fundo da tela
         tela.fill((30, 30, 45))
