@@ -19,7 +19,7 @@ def rodar_jogo():
 
     player = Player(start_x=largura // 2, start_y=altura // 2)
     pedra = Rock(200, 300)
-
+    
     rodando = True
     while rodando and player.alive:
         dt = relogio.tick(60) / 1000.0  # Delta time em segundos
@@ -54,6 +54,11 @@ def rodar_jogo():
             
             # Contorno da borda (Algoritmo do docs)
             desenhar_poligono(tela, part["vertices"], part["color"])
+
+        # FUNÇÃO PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
+        
+        # pygame.draw.rect(tela,(255, 0, 0),(player.x + player.hitbox[0],player.y + player.hitbox[1],player.hitbox[2],player.hitbox[3]),2)
+        # pygame.draw.rect(tela,(0, 255, 0),(pedra.x + pedra.hitbox[0],pedra.y + pedra.hitbox[1],pedra.hitbox[2],pedra.hitbox[3]),2)
 
         pygame.display.flip()
 

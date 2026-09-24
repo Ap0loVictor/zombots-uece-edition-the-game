@@ -11,7 +11,7 @@ class Player(Entity):
     """
 
     def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None):
-        super().__init__(start_x, start_y, health=100, width=48, height=16, hitbox=(2,1, 44, 14))
+        super().__init__(start_x, start_y, health=100, width=48, height=16, hitbox=(-10,-23, 18, 50))
 
         # Mecânica especializada de movimentação (injeção ou padrão)
         self.movement = movement if movement is not None else PlayerMovement(speed=speed, direction=direction)
