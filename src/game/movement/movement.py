@@ -1,4 +1,4 @@
-from src.mechanics.Physics import check_grid_collision, check_bounds_collision, check_aabb_collision
+from src.game.mechanics.Physics import check_grid_collision, check_bounds_collision, check_aabb_collision
 
 class Movement:
     """
@@ -7,19 +7,13 @@ class Movement:
     com suporte desacoplado para checagens de colisão usando Physics.
     """
 
-    def __init__(self, speed=250.0, direction="down", hitbox_w=14, hitbox_h=14, offset_x=2, offset_y=1):
+    def __init__(self, speed=250.0, direction="down"):
         self.speed = speed
         self.direction = direction
         self.is_moving = False
         self.was_moving = False
 
-        # Hitbox e offsets para colisões
-        self.hitbox_w = hitbox_w
-        self.hitbox_h = hitbox_h
-        self.offset_x = offset_x
-        self.offset_y = offset_y
-
-    def check_collision(self, x, y, level=None, solid_entities=None, bounds=None):
+    def check_collision(self, entity, x, y, level=None, solid_entities=None, bounds=None):
         """
         Hook de colisão que utiliza as funções da física do motor.
         Retorna True se houver colisão, False caso contrário.
