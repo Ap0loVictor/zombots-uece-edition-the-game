@@ -1,6 +1,6 @@
 from assets.sprites.sprite import Sprite
 
-TORN_COLOR = (100, 100, 100) # Cinza
+TORN_COLOR = (100, 150, 100) # Cinza
 
 # Vértices da pedra (um quadrado de 32x32 pixels)
 # Começando de 0,0 (canto superior esquerdo) até 32,32
