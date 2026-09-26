@@ -1,6 +1,6 @@
 # Class to generalize living objects, NPCs or players.
 class Entity:
-    def __init__(self, spawn_x, spawn_y, width, height, health, hitbox=None):
+    def __init__(self, spawn_x, spawn_y, width, height, health, hitbox=None, damage = 0):
         self.x = spawn_x
         self.y = spawn_y
         
@@ -12,9 +12,11 @@ class Entity:
         self.health = health
         self.max_health = health
         self.alive = True
+        self.damage = damage
 
     def receive_damage(self, damage):
         self.health -= damage
         if self.health < 1:
             self.health = 0
             self.alive = False
+    
