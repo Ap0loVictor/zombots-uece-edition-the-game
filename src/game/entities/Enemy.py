@@ -4,7 +4,7 @@ from assets.sprites.entities.EnemySprite import get_enemy_sprite
 import random
 
 
-class Enemies(Entity):
+class Enemy(Entity):
     """
     Entidade dos Inimigos.
     Coordena posição, movimentação e sprite.
@@ -12,8 +12,8 @@ class Enemies(Entity):
     seu movimento é decidido por uma IA interna (ex: perseguir o player).
     """
     
-    def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None):
-            super().__init__(start_x, start_y, health=50, width=16, height=48, hitbox=(-8, -24, 16, 48))
+    def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None, damage = 0):
+            super().__init__(start_x, start_y, health=50, width=16, height=48, hitbox=(-8, -24, 16, 48), damage=damage)
 
             self.enemy_type = enemy_type if enemy_type is not None else random.choice(["robo", "zumbi"])
             resolved_speed = speed if speed is not None else 100.0
