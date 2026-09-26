@@ -7,8 +7,7 @@ class Rock(Prop):
     """
     def __init__(self, x, y):
         # A posição da pedra no mundo
-        super().__init__(x, y, width=32, height=32, hitbox=(2, 2, 28, 28))
-        self.sprite = RockSprite()
+        super().__init__(x, y, width=32, height=32, hitbox=(2, 2, 28, 28), sprite = RockSprite())
         
     def get_polygons(self):
         """

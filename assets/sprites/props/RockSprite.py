@@ -26,6 +26,7 @@ class RockSprite(Sprite):
         world_polygons = []
         for part in self.parts:
             transformed_vertices = []
+            
             for vx, vy in part["vertices"]:
                 wx = origin_x + vx
                 wy = origin_y + vy

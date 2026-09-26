@@ -17,8 +17,8 @@ def runGame():
     player = Player(start_x=width // 2, start_y=height // 2)
     rock = Rock(200, 300)
 
-    zombie = Enemy(start_x=20, start_y=100, enemy_type="zombie", damage=10)
-    robot = Enemy(start_x=width, start_y=100, enemy_type="robot", damage=5)
+    zombie = Enemy(start_x=20, start_y=100, enemy_type="zombie", damage=34)
+    robot = Enemy(start_x=width, start_y=100, enemy_type="robot", damage=34)
 
 
     running = True
@@ -83,7 +83,9 @@ def runGame():
         
         # pygame.draw.rect(tela,(255, 0, 0),(player.x + player.hitbox[0],player.y + player.hitbox[1],player.hitbox[2],player.hitbox[3]),2)
         # pygame.draw.rect(tela,(0, 255, 0),(rock.x + rock.hitbox[0],rock.y + rock.hitbox[1],rock.hitbox[2],rock.hitbox[3]),2)
-
+        # pygame.draw.rect(tela,(0, 0, 0),(enemies[0].x + enemies[0].hitbox[0],enemies[0].y + enemies[0].hitbox[1],enemies[0].hitbox[2],enemies[0].hitbox[3]),2)
+        # pygame.draw.rect(tela,(0, 0, 0),(enemies[1].x + enemies[1].hitbox[0],enemies[1].y + enemies[1].hitbox[1],enemies[1].hitbox[2],enemies[1].hitbox[3]),2)
+        
         pygame.display.flip()
 
     pygame.quit()

@@ -1,10 +1,10 @@
 from assets.sprites.sprite import Sprite
 
-ROCK_COLOR = (241, 195, 56) # Alçafrão
+BOX_COLOR = (241, 195, 56) # Alçafrão
 
 # Vértices da pedra (um quadrado de 32x32 pixels)
 # Começando de 0,0 (canto superior esquerdo) até 32,32
-ROCK_POLYGON = [
+BOX_POLYGON = [
     (0, 0),
     (32, 0),
     (32, 32),
@@ -15,7 +15,7 @@ class BoxSprite(Sprite):
     def __init__(self):
         super().__init__()
         self.parts = [
-            {"name": "body", "vertices": ROCK_POLYGON, "color": ROCK_COLOR}
+            {"name": "body", "vertices": BOX_POLYGON, "color": BOX_COLOR}
         ]
 
     def get_world_polygons(self, origin_x, origin_y):
