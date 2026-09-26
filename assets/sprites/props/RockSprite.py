@@ -1,45 +1,40 @@
 from assets.sprites.sprite import Sprite
 
-ROBO = (0, 0, 255)
-ZOMBIES = (0, 128, 0)
+ROCK_COLOR = (100, 100, 100) # Cinza
 
-BODY_POLYGON = [
+# Vértices da pedra (um quadrado de 32x32 pixels)
+# Começando de 0,0 (canto superior esquerdo) até 32,32
+ROCK_POLYGON = [
     (0, 0),
-    (16, 0),
-    (16, 48),
-    (0, 48)
+    (32, 0),
+    (32, 32),
+    (0, 32)
 ]
 
-class EnemySprite(Sprite):
-
-    def __init__(self, color=ZOMBIES):
+class RockSprite(Sprite):
+    def __init__(self):
         super().__init__()
         self.parts = [
-            {"name": "body", "vertices": BODY_POLYGON, "color": color}
+            {"name": "body", "vertices": ROCK_POLYGON, "color": ROCK_COLOR}
         ]
 
-    def get_world_polygons(self, origin_x, origin_y, direction="down"):
+    def get_world_polygons(self, origin_x, origin_y):
+        """
+        Retorna as partes convertidas para o espaço da tela.
+        origin_x e origin_y representam o canto superior esquerdo da pedra.
+        """
         world_polygons = []
-
         for part in self.parts:
             transformed_vertices = []
+            
             for vx, vy in part["vertices"]:
                 wx = origin_x + vx
                 wy = origin_y + vy
                 transformed_vertices.append((wx, wy))
-
+            
             world_polygons.append({
                 "name": part["name"],
                 "vertices": transformed_vertices,
                 "color": part["color"]
             })
-
         return world_polygons
-
-def get_enemy_sprite(enemy_type="zombie"):
-
-    if enemy_type == "robot":
-        return EnemySprite(ROBO)
-    
-    return EnemySprite(ZOMBIES)
-

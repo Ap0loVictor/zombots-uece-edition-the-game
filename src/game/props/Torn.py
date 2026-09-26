@@ -1,16 +1,15 @@
-from assets.sprites.entities.RockSprite import RockSprite
-from src.game.entities.Prop import Prop
+from assets.sprites.props.TornSprite import TornSprite
+from src.game.props.Prop import Prop
 
-class Rock(Prop):
+class Torn(Prop):
     """
     Entidade estática representando uma parede ou pedra intransponível.
     """
     def __init__(self, x, y):
         # A posição da pedra no mundo
-        super().__init__(x, y, width=32, height=32, hitbox=(2, 2, 28, 28))
-        self.damage = 34 # Temporário
-        # Inicia o sprite
-        self.sprite = RockSprite()
+        super().__init__(x, y, width=16, height=16, hitbox=(2, 2, 14, 14), sprite = TornSprite())
+        self.damage = 10
+
         
     def get_polygons(self):
         """
