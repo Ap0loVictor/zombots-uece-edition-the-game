@@ -1,3 +1,5 @@
+from math import hypot
+
 import pygame
 from src.game.movement.Movement import Movement
 
@@ -13,23 +15,30 @@ class MovementPlayer(Movement):
         super().__init__(speed=speed,direction=direction)
 
     def update(self, entity, dt, keys, level=None, solid_entities=None, bounds=None):
-        dx = 0
-        dy = 0
+        left = keys[pygame.K_a] or keys[pygame.K_LEFT]
+        right = keys[pygame.K_d] or keys[pygame.K_RIGHT]
+        up = keys[pygame.K_w] or keys[pygame.K_UP]
+        down = keys[pygame.K_s] or keys[pygame.K_DOWN]
 
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
-            dy -= self.speed * dt
+        #direções opostas se cancela
+        dx = int(right) - int(left)
+        dy = int(down) - int(up)
+
+        # mantém a orientaçao usada pela mira, priorizando o eixo y
+        if dy < 0:
             self.direction = "up"
-
-        elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            dy += self.speed * dt
+        elif dy > 0:
             self.direction = "down"
-
-        elif keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            dx -= self.speed * dt
+        elif dx < 0:
             self.direction = "left"
-
-        elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            dx += self.speed * dt
+        elif dx > 0:
             self.direction = "right"
+
+        # pra diagonal ter a mesma velocidade dos eixos
+        length = hypot(dx, dy)
+        if length > 0:
+            step = self.speed * dt / length
+            dx *= step
+            dy *= step
 
         return self.move_axis(entity, dx, dy, level=level, solid_entities=solid_entities, bounds=bounds)
