@@ -101,18 +101,6 @@ def runGame():
         if not player.alive:
             print("Voce morreu, seu nooob")
             
-      #  for enemy in enemies:
-      #      for part in enemy.get_polygons():
-      #          scanline_fill(tela, part["vertices"], part["color"])
-      #          desenhar_poligono(tela, part["vertices"], part["color"])
-
-      #  # Renderização das partes poligonais do Player com matemática pura (Bresenham/Scanline)
-      # for part in player.get_polygons():
-      #      # Preenchimento (Algoritmo do docs)
-      #      scanline_fill(tela, part["vertices"], part["color"])
-            
-            # Contorno da borda (Algoritmo do docs)
-      #      desenhar_poligono(tela, part["vertices"], part["color"])
 
         # FUNÇÃO PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
         
