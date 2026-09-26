@@ -51,10 +51,31 @@ def runGame():
         # Novo
         player.update(dt=dt, keys=keys, solid_entities=[rock] + enemies, bounds=limits)
 
+        player_box = get_world_hitbox(player)
+
+        for enemy in enemies:
+            if enemy.alive:
+                enemy_box = get_world_hitbox(enemy)
+                if check_aabb_collision(*player_box, *enemy_box):
+                    if player.receive_damage(enemy.damage):
+                        print("Vida:", player.health)
+                        if not player.alive:
+                            print("Voce morreu, seu nooob")
+        
+        player_box = get_world_hitbox(player)
+        rock_box = get_world_hitbox(rock)
+
+        if check_aabb_collision(*player_box,*rock_box):
+            if player.receive_damage(rock.damage):
+                print("Health:", player.health)
+                if not player.alive:
+                    print("You died, noob")
+
         # Fundo da tela
         tela.fill((30, 30, 45))
 
         renderize_beings(things, tela=tela)
+
 
         player_box = get_world_hitbox(player)
 
@@ -79,6 +100,19 @@ def runGame():
 
         if not player.alive:
             print("Voce morreu, seu nooob")
+            
+      #  for enemy in enemies:
+      #      for part in enemy.get_polygons():
+      #          scanline_fill(tela, part["vertices"], part["color"])
+      #          desenhar_poligono(tela, part["vertices"], part["color"])
+
+      #  # Renderização das partes poligonais do Player com matemática pura (Bresenham/Scanline)
+      # for part in player.get_polygons():
+      #      # Preenchimento (Algoritmo do docs)
+      #      scanline_fill(tela, part["vertices"], part["color"])
+            
+            # Contorno da borda (Algoritmo do docs)
+      #      desenhar_poligono(tela, part["vertices"], part["color"])
 
         # FUNÇÃO PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
         
