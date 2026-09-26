@@ -1,2 +1,3 @@
 from src.game import test
-test
+from src import main
+main

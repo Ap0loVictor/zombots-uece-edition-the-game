@@ -1,17 +1,8 @@
 # ============================================================
 # TEMPORARY PLAYER SPRITE
-# Modelo temporário do jogador feito com polígonos.
-#
-# As coordenadas das partes são LOCAIS relativas ao centro (0, 0).
-# O desenho efetivo é desacoplado e pode ser renderizado pelo
-# motor gráfico (Scanline, polígonos Pygame, etc.).
 # ============================================================
 
 from assets.sprites.sprite import Sprite
-
-# ============================================================
-# CORES
-# ============================================================
 
 RED = (220, 50, 50)
 
@@ -28,7 +19,7 @@ BODY_POLYGON = [
 ]
 
 
-class TemporaryPlayerSprite(Sprite):
+class PlayerSprite(Sprite):
     """
     Representação vetorial/poligonal temporária do jogador.
     Um retângulo vermelho vertical (em pé).
@@ -67,4 +58,4 @@ def get_temp_player():
     """
     Função de compatibilidade para obter a estrutura de partes locais.
     """
-    return TemporaryPlayerSprite().get_parts()
+    return PlayerSprite().get_parts()

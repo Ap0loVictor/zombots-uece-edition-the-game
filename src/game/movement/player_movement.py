@@ -9,19 +9,10 @@ class PlayerMovement(Movement):
     a lógica de deslocamento da classe base.
     """
 
-    def __init__(self, speed=250.0, direction="down", hitbox_w=16, hitbox_h=48, offset_x=-8, offset_y=-24):
-        super().__init__(
-            speed=speed,
-            direction=direction,
-            hitbox_w=hitbox_w,
-            hitbox_h=hitbox_h,
-            offset_x=offset_x,
-            offset_y=offset_y
-        )
+    def __init__(self, speed=250.0, direction="down"):
+        super().__init__(speed=speed,direction=direction)
 
-    def update(self, x, y, dt, keys, level=None, solid_entities=None, bounds=None):
-        was_moving = self.is_moving
-        self.is_moving = False
+    def update(self, entity, dt, keys, level=None, solid_entities=None, bounds=None):
         dx = 0
         dy = 0
 
@@ -41,4 +32,4 @@ class PlayerMovement(Movement):
             dx += self.speed * dt
             self.direction = "right"
 
-        return self.move_axis(x, y, dx, dy, level=level, solid_entities=solid_entities, bounds=bounds)
+        return self.move_axis(entity, dx, dy, level=level, solid_entities=solid_entities, bounds=bounds)

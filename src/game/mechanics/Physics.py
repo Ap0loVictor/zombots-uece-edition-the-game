@@ -1,4 +1,4 @@
-def check_grid_collision(x, y, hitbox_w, hitbox_h, offset_x, offset_y, level):
+def check_grid_collision(x, y, hitbox_w, hitbox_h, level):
     if level is None:
         return False
     # Espaço para lógica de colisão com a grid real do level
@@ -9,23 +9,21 @@ def check_grid_collision(x, y, hitbox_w, hitbox_h, offset_x, offset_y, level):
 # Cada limite pode ser None, o que representa uma borda ABERTA, ou seja,
 # um lado por onde o mundo ainda se estende (ex.: a direita, quando a
 # tela avança para a próxima parte do mapa).
-def check_bounds_collision(x, y, hitbox_w, hitbox_h, offset_x, offset_y, bounds):
+def check_bounds_collision(x, y, hitbox_w, hitbox_h, bounds):
     if bounds is None:
         return False
 
     min_x, min_y, max_x, max_y = bounds
 
     # Canto superior esquerdo da hitbox no espaço de mundo
-    hx = x + offset_x
-    hy = y + offset_y
 
-    if min_x is not None and hx < min_x:
+    if min_x is not None and x < min_x:
         return True
-    if min_y is not None and hy < min_y:
+    if min_y is not None and y < min_y:
         return True
-    if max_x is not None and hx + hitbox_w > max_x:
+    if max_x is not None and x + hitbox_w > max_x:
         return True
-    if max_y is not None and hy + hitbox_h > max_y:
+    if max_y is not None and y + hitbox_h > max_y:
         return True
 
     return False
