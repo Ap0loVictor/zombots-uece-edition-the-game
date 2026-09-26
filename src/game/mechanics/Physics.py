@@ -9,6 +9,7 @@ def check_grid_collision(x, y, hitbox_w, hitbox_h, level):
 # Cada limite pode ser None, o que representa uma borda ABERTA, ou seja,
 # um lado por onde o mundo ainda se estende (ex.: a direita, quando a
 # tela avança para a próxima parte do mapa).
+
 def check_bounds_collision(x, y, hitbox_w, hitbox_h, bounds):
     if bounds is None:
         return False
@@ -33,3 +34,6 @@ def check_bounds_collision(x, y, hitbox_w, hitbox_h, bounds):
 def check_aabb_collision(x1, y1, w1, h1, x2, y2, w2, h2):
     return (x1 < x2 + w2 and x1 + w1 > x2 and
             y1 < y2 + h2 and y1 + h1 > y2)
+
+def get_world_hitboxes():
+    pass

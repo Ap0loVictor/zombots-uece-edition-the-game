@@ -1,20 +1,7 @@
 from assets.sprites.sprite import Sprite
 
-
-# ============================================================
-# CORES
-# ============================================================
-
-
 ROBO = (0, 0, 255)
 ZOMBIES = (0, 128, 0)
-
-
-
-# ============================================================
-# POLÍGONO LOCAL DO inimigo (Centro em 0, 0)
-# Retângulo vertical: 16 de largura x 48 de altura
-# ============================================================
 
 BODY_POLYGON = [
     (-8, -24),
@@ -24,7 +11,7 @@ BODY_POLYGON = [
 ]
 
 
-class TemperoraryEnemieSprite(Sprite):
+class EnemySprite(Sprite):
 
     def __init__(self, color=ZOMBIES):
         super().__init__()
@@ -50,10 +37,10 @@ class TemperoraryEnemieSprite(Sprite):
 
         return world_polygons
 
-def get_temp_enemies(enemy_type="zombie"):
+def get_enemy_sprite(enemy_type="zombie"):
 
     if enemy_type == "robot":
-        return TemperoraryEnemieSprite(ROBO)
+        return EnemySprite(ROBO)
     
-    return TemperoraryEnemieSprite(ZOMBIES)
+    return EnemySprite(ZOMBIES)
 
