@@ -1,6 +1,6 @@
 import pygame
 from src.game.entities.Player import Player
-from src.game.entities.Rock import Rock
+from src.game.props.Rock import Rock
 from src.game.entities.Enemy import Enemy
 from src.engine.rendering import desenhar_poligono, scanline_fill
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
@@ -53,8 +53,6 @@ def runGame():
             for part in enemy.get_polygons():
                 scanline_fill(tela, part["vertices"], part["color"])
                 desenhar_poligono(tela, part["vertices"], part["color"])
-
-        # # Colisão do player com os enemies, causando dano
         
         player_box = get_world_hitbox(player)
 
@@ -78,11 +76,8 @@ def runGame():
 
         # Renderização das partes poligonais do Player com matemática pura (Bresenham/Scanline)
         for part in player.get_polygons():
-            # Preenchimento (Algoritmo do docs)
-            scanline_fill(tela, part["vertices"], part["color"])
-            
-            # Contorno da borda (Algoritmo do docs)
-            desenhar_poligono(tela, part["vertices"], part["color"])
+            scanline_fill(tela, part["vertices"], part["color"]) # Preenchimento  
+            desenhar_poligono(tela, part["vertices"], part["color"]) # Contorno da borda 
 
         # FUNÇÃO PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
         
