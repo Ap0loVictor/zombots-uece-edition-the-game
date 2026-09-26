@@ -1,5 +1,5 @@
 from src.game.entities.Entity import Entity
-from src.game.movement.player_movement import PlayerMovement
+from src.game.movement.MovementPlayer import MovementPlayer
 from assets.sprites.entities.PlayerSprite import PlayerSprite
 
 
@@ -14,7 +14,7 @@ class Player(Entity):
         super().__init__(start_x, start_y, health=100, width=48, height=16, hitbox=(-10,-23, 18, 50))
 
         # Mecânica especializada de movimentação (injeção ou padrão)
-        self.movement = movement if movement is not None else PlayerMovement(speed=speed, direction=direction)
+        self.movement = movement if movement is not None else MovementPlayer(speed=speed, direction=direction)
 
         # Sprite visual temporário com polígonos
         self.sprite = sprite if sprite is not None else PlayerSprite()

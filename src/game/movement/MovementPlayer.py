@@ -1,8 +1,8 @@
 import pygame
-from src.game.movement.movement import Movement
+from src.game.movement.Movement import Movement
 
 
-class PlayerMovement(Movement):
+class MovementPlayer(Movement):
     """
     Especialização de Movement para o jogador.
     Interpreta as teclas pressionadas pelo usuário e invoca

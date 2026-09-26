@@ -1,5 +1,5 @@
 from src.game.entities.Entity import Entity
-from src.game.movement.enemies_movement import EnemiesMovement
+from src.game.movement.MovementEnemies import MovementEnemies
 from assets.sprites.entities.EnemySprite import get_enemy_sprite
 import random
 
@@ -18,7 +18,7 @@ class Enemies(Entity):
             self.enemy_type = enemy_type if enemy_type is not None else random.choice(["robo", "zumbi"])
             resolved_speed = speed if speed is not None else 100.0
 
-            self.movement = movement if movement is not None else EnemiesMovement(speed=resolved_speed)
+            self.movement = movement if movement is not None else MovementEnemies(speed=resolved_speed)
             self.sprite = sprite if sprite is not None else get_enemy_sprite(self.enemy_type)
 
 
