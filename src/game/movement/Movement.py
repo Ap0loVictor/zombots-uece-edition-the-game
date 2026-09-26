@@ -1,4 +1,5 @@
-from src.game.mechanics.Physics import check_grid_collision, check_bounds_collision, check_aabb_collision
+from src.game.mechanics.Physics import check_grid_collision, check_bounds_collision, check_aabb_collision, get_world_hitbox
+
 
 class Movement:
     """
@@ -13,12 +14,12 @@ class Movement:
         self.is_moving = False
         self.was_moving = False
 
-    def check_hitbox(self, entity,x, y):    
-        if entity.hitbox is None:
-            return x , y, entity.width, entity.height
+    # def check_hitbox(self, entity,x, y):    
+    #     if entity.hitbox is None:
+    #         return x , y, entity.width, entity.height
         
-        offset_x, offset_y, width, height = entity.hitbox
-        return (x + offset_x), (y + offset_y), width, height
+    #     offset_x, offset_y, width, height = entity.hitbox
+    #     return (x + offset_x), (y + offset_y), width, height
     
     def check_collision(self, entity, x, y, level=None, solid_entities=None, bounds=None):
         """
@@ -30,7 +31,7 @@ class Movement:
             entity -> colisão com outra entidade
             False -> nenhuma colisão
         """
-        hx, hy, hw, hh = self.check_hitbox(entity, x, y)
+        hx, hy, hw, hh = get_world_hitbox(entity, x, y)
 
         # Colisão com o mapa
         if check_grid_collision(hx, hy, hw, hh, level):
@@ -43,11 +44,10 @@ class Movement:
         # Checa colisão com outras entidades (AABB)
         if solid_entities is not None:
             for other in solid_entities:
-
                 if other is entity:
                     continue
 
-                ox, oy, ow, oh = self.check_hitbox(other, other.x, other.y)
+                ox, oy, ow, oh = get_world_hitbox(other)
                 
                 if check_aabb_collision(hx, hy, hw, hh, ox, oy, ow, oh):
                     return other

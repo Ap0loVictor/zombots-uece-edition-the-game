@@ -1,6 +1,6 @@
-from src.game.movement.movement import Movement
+from src.game.movement.Movement import Movement
 
-class EnemiesMovement(Movement):
+class MovementEnemies(Movement):
     """
         Movimentação controlada pela IA do inimigo.
 
