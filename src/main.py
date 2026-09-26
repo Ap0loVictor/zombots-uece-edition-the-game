@@ -48,34 +48,11 @@ def runGame():
 
         keys = pygame.key.get_pressed() # Atualiza a entidade Player com os inputs do teclado
 
-        # Novo
         player.update(dt=dt, keys=keys, solid_entities=[rock] + enemies, bounds=limits)
 
-        player_box = get_world_hitbox(player)
-
-        for enemy in enemies:
-            if enemy.alive:
-                enemy_box = get_world_hitbox(enemy)
-                if check_aabb_collision(*player_box, *enemy_box):
-                    if player.receive_damage(enemy.damage):
-                        print("Vida:", player.health)
-                        if not player.alive:
-                            print("Voce morreu, seu nooob")
-        
-        player_box = get_world_hitbox(player)
-        rock_box = get_world_hitbox(rock)
-
-        if check_aabb_collision(*player_box,*rock_box):
-            if player.receive_damage(rock.damage):
-                print("Health:", player.health)
-                if not player.alive:
-                    print("You died, noob")
-
-        # Fundo da tela
         tela.fill((30, 30, 45))
 
         renderize_beings(things, tela=tela)
-
 
         player_box = get_world_hitbox(player)
 
@@ -84,19 +61,12 @@ def runGame():
                 enemy_box = get_world_hitbox(enemy)
                 if check_aabb_collision(*player_box, *enemy_box):
                     player.receive_damage(enemy.damage) 
-                    print("Vida:", player.health)
 
         player_box = get_world_hitbox(player)
-        rock_box = get_world_hitbox(rock)
         torn_box = get_world_hitbox(torn)
 
-        if check_aabb_collision(*player_box,*rock_box):
-            player.receive_damage(rock.damage)
-            print("Health:", player.health)
-        
         if check_aabb_collision(*player_box,*torn_box):
             player.receive_damage(torn.damage)
-            print("Health:", player.health)
 
         if not player.alive:
             print("Voce morreu, seu nooob")

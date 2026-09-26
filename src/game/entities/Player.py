@@ -35,6 +35,7 @@ class Player(Entity):
 
         super().receive_damage(damage)
         if self.alive:
+            print(f"Vida do jogador: {self.health}")
             self.start_invincibility()
         return True
 
