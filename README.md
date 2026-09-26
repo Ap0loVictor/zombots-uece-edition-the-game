@@ -49,12 +49,20 @@ Porém, a máquina do tempo já vem com uma configuração fixa, que o leva dire
 Para executar o protótipo, com Python e Pygame instalados, rode na raiz do projeto:
 
 ```bash
-python3 testee.py
+python3 main.py
 ```
 
-Também é possível executar como módulo: `python3 -m src.game.test`.
-Os imports usam a raiz do projeto como referência; para executar arquivos dentro de
-`src/`, use a forma de módulo (`-m`).
+O jogador recebe 2 segundos de invencibilidade após cada golpe não letal.
+Ao iniciar esse intervalo, o terminal exibe `IFRAMES ACTIVE` uma vez.
+Golpes bloqueados não descontam vida nem prolongam a proteção. A duração pode
+ser configurada pelo argumento `invincibility_duration` de `Player`, em segundos.
+Os inimigos continuam recebendo dano normalmente.
+
+Para executar os testes automatizados:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
 
 ### Objetivo
 
@@ -453,7 +461,7 @@ Zombots-UECE-Edition/
     </td>
     <td align="center">
       <img src="assets/img/david_jansen.jpeg" height="250" /><br>
-      <b>David Jansen</b>
+      <b>Davi Jannsen</b>
     </td>
     <td align="center">
       <img src="assets/img/apolo.jpg" height="250" /><br>

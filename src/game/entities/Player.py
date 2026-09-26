@@ -6,18 +6,37 @@ from assets.sprites.entities.PlayerSprite import PlayerSprite
 class Player(Entity):
     """
     Entidade do Jogador.
-    Coordena posição, movimentação cardinal através de PlayerMovement
-    e geometria visual através de TemporaryPlayerSprite.
     """
 
-    def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None):
+    def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0):
         super().__init__(start_x, start_y, health=100, width=48, height=16, hitbox=(-10,-23, 18, 50))
+        self.invincibility_duration = invincibility_duration
+        self.invincibility_remaining = 0.0
 
         # Mecânica especializada de movimentação (injeção ou padrão)
         self.movement = movement if movement is not None else MovementPlayer(speed=speed, direction=direction)
 
         # Sprite visual temporário com polígonos
         self.sprite = sprite if sprite is not None else PlayerSprite()
+
+    @property
+    def is_invincible(self):
+        return self.invincibility_remaining > 0.0
+
+    def start_invincibility(self):
+        if not self.alive or self.is_invincible or self.invincibility_duration <= 0:
+            return
+        self.invincibility_remaining = self.invincibility_duration
+        print("IFRAMES ATIVO")
+
+    def receive_damage(self, damage):
+        if not self.alive or self.is_invincible or damage <= 0:
+            return False
+
+        super().receive_damage(damage)
+        if self.alive:
+            self.start_invincibility()
+        return True
 
     # ========================================================
     # ATUALIZAÇÃO
@@ -29,8 +48,8 @@ class Player(Entity):
         permitindo colisões opcionais com level, solid_entities e bounds (limites do mundo).
         """
 
-        # print (self.health)
-        if self.alive == True:
+        self.invincibility_remaining = max(0.0, self.invincibility_remaining - dt)
+        if self.alive:
             self.x, self.y = self.movement.update(self, dt, keys, level=level, solid_entities=solid_entities, bounds=bounds)
 
     # ========================================================

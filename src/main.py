@@ -41,6 +41,26 @@ def runGame():
         # Novo
         player.update(dt=dt, keys=keys, solid_entities=[rock] + enemies, bounds=limits)
 
+        player_box = get_world_hitbox(player)
+
+        for enemy in enemies:
+            if enemy.alive:
+                enemy_box = get_world_hitbox(enemy)
+                if check_aabb_collision(*player_box, *enemy_box):
+                    if player.receive_damage(enemy.damage):
+                        print("Vida:", player.health)
+                        if not player.alive:
+                            print("Voce morreu, seu nooob")
+        
+        player_box = get_world_hitbox(player)
+        rock_box = get_world_hitbox(rock)
+
+        if check_aabb_collision(*player_box,*rock_box):
+            if player.receive_damage(rock.damage):
+                print("Health:", player.health)
+                if not player.alive:
+                    print("You died, noob")
+
         # Fundo da tela
         tela.fill((30, 30, 45))
 
@@ -53,28 +73,6 @@ def runGame():
             for part in enemy.get_polygons():
                 scanline_fill(tela, part["vertices"], part["color"])
                 desenhar_poligono(tela, part["vertices"], part["color"])
-
-        # # Colisão do player com os enemies, causando dano
-        
-        player_box = get_world_hitbox(player)
-
-        for enemy in enemies:
-            if enemy.alive:
-                enemy_box = get_world_hitbox(enemy)
-                if check_aabb_collision(*player_box, *enemy_box):
-                    player.receive_damage(enemy.damage) 
-                    print("Vida:", player.health)
-                    if not player.alive:
-                        print("Voce morreu, seu nooob")
-        
-        player_box = get_world_hitbox(player)
-        rock_box = get_world_hitbox(rock)
-
-        if check_aabb_collision(*player_box,*rock_box):
-            player.receive_damage(rock.damage)
-            print("Health:", player.health)
-            if not player.alive:
-                print("You died, noob")
 
         # Renderização das partes poligonais do Player com matemática pura (Bresenham/Scanline)
         for part in player.get_polygons():
