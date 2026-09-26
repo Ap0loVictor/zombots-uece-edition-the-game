@@ -3,11 +3,7 @@ from src.game.entities.Player import Player
 from src.game.entities.Rock import Rock
 from src.game.entities.Enemies import Enemies
 from src.engine.rendering import desenhar_poligono, scanline_fill
-from src.mechanics.Physics import check_aabb_collision
-
-def testeeee():
-    print("so pra ver se roda")
-
+from src.game.mechanics.Physics import check_aabb_collision
 
 def rodar_jogo():
     pygame.init()
@@ -24,8 +20,10 @@ def rodar_jogo():
 
     player = Player(start_x=largura // 2, start_y=altura // 2)
     pedra = Rock(200, 300)
+
     inimigo_zumbi = Enemies(start_x=20, start_y=100, enemy_type="zombie")
     inimigo_robo = Enemies(start_x=largura, start_y=100, enemy_type="robot")
+
 
     rodando = True
     while rodando and player.alive:
@@ -43,7 +41,13 @@ def rodar_jogo():
 
         # Atualiza a entidade Player com os inputs do teclado
         keys = pygame.key.get_pressed()
-        player.update(dt, keys, solid_entities=[pedra] + inimigos, bounds=limites)
+
+        # Novo
+        # player.update(dt=dt, keys=keys, solid_entities=[pedra], bounds=limites)
+        
+        # Antigo
+        # player.update(dt, keys, solid_entities=[pedra] + inimigos, bounds=limites)
+
 
         # Fundo da tela
         tela.fill((30, 30, 45))
@@ -71,11 +75,11 @@ def rodar_jogo():
                     print("Voce morreu, seu nooob")
         
         # Teste de colisão tirando vida
-        if check_aabb_collision(player.x,player.y,player.width,player.height,pedra.x,pedra.y,pedra.width,pedra.height):
-            player.receive_damage(pedra.damage)
-            print("Vida:", player.health)
-            if player.alive == False:
-                print("Voce morreu, seu nooob")
+        # if check_aabb_collision(player.x,player.y,player.width,player.height,pedra.x,pedra.y,pedra.width,pedra.height):
+        #     player.receive_damage(pedra.damage)
+        #     print("Vida:", player.health)
+        #     if player.alive == False:
+        #         print("Voce morreu, seu nooob")
 
         # Renderização das partes poligonais do Player com matemática pura (Bresenham/Scanline)
         for part in player.get_polygons():
@@ -84,6 +88,11 @@ def rodar_jogo():
             
             # Contorno da borda (Algoritmo do docs)
             desenhar_poligono(tela, part["vertices"], part["color"])
+
+        # FUNÇÃO PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
+        
+        # pygame.draw.rect(tela,(255, 0, 0),(player.x + player.hitbox[0],player.y + player.hitbox[1],player.hitbox[2],player.hitbox[3]),2)
+        # pygame.draw.rect(tela,(0, 255, 0),(pedra.x + pedra.hitbox[0],pedra.y + pedra.hitbox[1],pedra.hitbox[2],pedra.hitbox[3]),2)
 
         pygame.display.flip()
 
