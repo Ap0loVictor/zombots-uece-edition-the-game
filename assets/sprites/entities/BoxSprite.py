@@ -2,13 +2,11 @@ from assets.sprites.sprite import Sprite
 
 BOX_COLOR = (241, 195, 56) # Alçafrão
 
-# Vértices da pedra (um quadrado de 32x32 pixels)
-# Começando de 0,0 (canto superior esquerdo) até 32,32
 BOX_POLYGON = [
     (0, 0),
-    (32, 0),
-    (32, 32),
-    (0, 32)
+    (25, 0),
+    (25, 25),
+    (0, 25)
 ]
 
 class BoxSprite(Sprite):
@@ -19,10 +17,7 @@ class BoxSprite(Sprite):
         ]
 
     def get_world_polygons(self, origin_x, origin_y):
-        """
-        Retorna as partes convertidas para o espaço da tela.
-        origin_x e origin_y representam o canto superior esquerdo da pedra.
-        """
+
         world_polygons = []
         for part in self.parts:
             transformed_vertices = []

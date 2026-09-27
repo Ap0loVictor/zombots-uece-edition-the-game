@@ -3,6 +3,8 @@ from src.game.entities.Player import Player
 from src.game.props.Rock import Rock
 from src.game.props.Torn import Torn
 from src.game.entities.Enemy import Enemy
+from src.game.entities.Box import Box
+
 from src.engine.rendering import desenhar_poligono, scanline_fill
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
@@ -24,18 +26,19 @@ def runGame():
     player = Player(start_x=width // 2, start_y=height // 2)
     rock = Rock(200, 300)
     torn = Torn(400, 200)
+    box = Box(600, 500)
 
     zombie = Enemy(start_x=20, start_y=100, enemy_type="zombie", damage=34)
     robot = Enemy(start_x=width, start_y=100, enemy_type="robot", damage=34)
 
-    props = [rock, torn]
+    props = [rock, torn, box]
     enemies = [zombie, robot]
     entities = [player] + enemies
     things = props + entities
 
     running = True
 
-    while running and player.alive:
+    while running:
         dt = clock.tick(60) / 1000.0  # Delta time em segundos
 
         for evento in pygame.event.get():
@@ -48,34 +51,12 @@ def runGame():
 
         keys = pygame.key.get_pressed() # Atualiza a entidade Player com os inputs do teclado
 
-        # Novo
         player.update(dt=dt, keys=keys, solid_entities=[rock] + enemies, bounds=limits)
 
-        player_box = get_world_hitbox(player)
-
-        for enemy in enemies:
-            if enemy.alive:
-                enemy_box = get_world_hitbox(enemy)
-                if check_aabb_collision(*player_box, *enemy_box):
-                    if player.receive_damage(enemy.damage):
-                        print("Vida:", player.health)
-                        if not player.alive:
-                            print("Voce morreu, seu nooob")
-        
-        player_box = get_world_hitbox(player)
-        rock_box = get_world_hitbox(rock)
-
-        if check_aabb_collision(*player_box,*rock_box):
-            if player.receive_damage(rock.damage):
-                print("Health:", player.health)
-                if not player.alive:
-                    print("You died, noob")
-
-        # Fundo da tela
         tela.fill((30, 30, 45))
 
+        
         renderize_beings(things, tela=tela)
-
 
         player_box = get_world_hitbox(player)
 
@@ -84,22 +65,27 @@ def runGame():
                 enemy_box = get_world_hitbox(enemy)
                 if check_aabb_collision(*player_box, *enemy_box):
                     player.receive_damage(enemy.damage) 
-                    print("Vida:", player.health)
 
         player_box = get_world_hitbox(player)
-        rock_box = get_world_hitbox(rock)
         torn_box = get_world_hitbox(torn)
+        box_box = get_world_hitbox(box)
 
-        if check_aabb_collision(*player_box,*rock_box):
-            player.receive_damage(rock.damage)
-            print("Health:", player.health)
-        
         if check_aabb_collision(*player_box,*torn_box):
             player.receive_damage(torn.damage)
-            print("Health:", player.health)
+        
+        if check_aabb_collision(*player_box,*box_box):
+            box.receive_damage(player.damage)
 
-        if not player.alive:
-            print("Voce morreu, seu nooob")
+        # Fazendo um teste de remoção
+        if rock in things:
+            if not player.alive:
+                print("Voce morreu")
+                things.remove(rock)
+
+        if box in things:
+            if not box.alive:
+                print("Quebraste a caixa")
+                things.remove(box)
             
 
         # FUNÇÃO PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 

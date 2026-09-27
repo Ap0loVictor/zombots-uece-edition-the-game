@@ -9,7 +9,7 @@ class Player(Entity):
     """
 
     def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0):
-        super().__init__(start_x, start_y, health=100, width=48, height=16, hitbox=(2, 2, 14, 46))
+        super().__init__(start_x, start_y, health=100, width=48, height=16, hitbox=(2, 2, 14, 46), damage=10)
         self.invincibility_duration = invincibility_duration
         self.invincibility_remaining = 0.0
 
@@ -35,6 +35,7 @@ class Player(Entity):
 
         super().receive_damage(damage)
         if self.alive:
+            print(f"Vida do jogador: {self.health}")
             self.start_invincibility()
         return True
 
