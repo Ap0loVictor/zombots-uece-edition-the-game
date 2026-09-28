@@ -12,7 +12,7 @@ class Enemy(Entity):
     seu movimento é decidido por uma IA interna (ex: perseguir o player).
     """
     
-    def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None, damage = 0):
+    def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None, damage=0):
             super().__init__(start_x, start_y, health=50, width=16, height=48, hitbox=(2, 2, 14, 46), damage=damage)
 
             self.enemy_type = enemy_type if enemy_type is not None else random.choice(["robo", "zumbi"])
@@ -20,14 +20,30 @@ class Enemy(Entity):
 
             self.movement = movement if movement is not None else MovementEnemies(speed=resolved_speed)
             self.sprite = sprite if sprite is not None else get_enemy_sprite(self.enemy_type)
+            self.knockback_dx = 0.0
+            self.knockback_dy = 0.0
+            self.knockback_timer = 0.0
+
+
+    def apply_knockback(self, dx, dy, duration=0.15):
+        self.knockback_dx = dx
+        self.knockback_dy = dy
+        self.knockback_timer = duration
 
 
     def update(self, dt, target=None, level=None, solid_entities=None, bounds=None):
-          if self.alive:
-                self.x, self.y = self.movement.update(
-                      self, dt, target=target,
-                      level=level, solid_entities=solid_entities, bounds=bounds
-                )
+        if not self.alive:
+            return
+
+        if self.knockback_timer > 0.0:
+            self.knockback_timer = max(0.0, self.knockback_timer - dt)
+            self.x += self.knockback_dx * dt
+            self.y += self.knockback_dy * dt
+        else:
+            self.x, self.y = self.movement.update(
+                self, dt, target=target,
+                level=level, solid_entities=solid_entities, bounds=bounds
+            )
 
     def get_polygons(self):
           return self.sprite.get_world_polygons(self.x, self.y, self.direction)
