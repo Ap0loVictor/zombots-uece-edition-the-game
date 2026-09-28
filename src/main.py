@@ -8,11 +8,30 @@ from src.game.entities.Box import Box
 from src.engine.rendering import desenhar_poligono, scanline_fill
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
-def renderize_beings(beings, tela):
+def renderizeBeings(beings, tela):
     for i in range(len(beings)):
         for being in beings[i].get_polygons():
             scanline_fill(tela, being["vertices"], being["color"]) # Preenchimento  
             desenhar_poligono(tela, being["vertices"], being["color"]) # Contorno da borda 
+
+def removeBeing(beings, object, condition, message):
+    if object in beings:
+        if not condition:
+            print(message)
+            beings.remove(object)
+    return beings
+
+# Testar depois, não apagar - Apolo
+# Essas funções não são as mesmas.
+
+def removeBeings(beings):
+    for object in beings:
+        if not object.alive:
+            beings.remove(object)
+    return beings
+
+def updateBeing(entities):
+    pass # Acho que não vai dar pra fazer esse.
 
 def runGame():
     pygame.init()
@@ -26,14 +45,15 @@ def runGame():
     player = Player(start_x=width // 2, start_y=height // 2)
     rock = Rock(200, 300)
     torn = Torn(400, 200)
-    box = Box(600, 500)
+    box1 = Box(600, 500)
 
     zombie = Enemy(start_x=20, start_y=100, enemy_type="zombie", damage=34)
     robot = Enemy(start_x=width, start_y=100, enemy_type="robot", damage=34)
 
-    props = [rock, torn, box]
+    props = [rock, torn]
+    boxes = [box1]
     enemies = [zombie, robot]
-    entities = [player] + enemies
+    entities = [player] + boxes + enemies
     things = props + entities
 
     running = True
@@ -45,18 +65,17 @@ def runGame():
             if evento.type == pygame.QUIT:
                 running = False
 
+        keys = pygame.key.get_pressed() # Atualiza a entidade Player com os inputs do teclado
+        
         for enemy in enemies:
             others = [rock] + [i for i in enemies if i is not enemy]
             enemy.update(dt, target=player.get_position(), solid_entities=others, bounds=limits)
 
-        keys = pygame.key.get_pressed() # Atualiza a entidade Player com os inputs do teclado
-
         player.update(dt=dt, keys=keys, solid_entities=[rock] + enemies, bounds=limits)
 
         tela.fill((30, 30, 45))
-
         
-        renderize_beings(things, tela=tela)
+        renderizeBeings(things, tela=tela)
 
         player_box = get_world_hitbox(player)
 
@@ -68,33 +87,24 @@ def runGame():
 
         player_box = get_world_hitbox(player)
         torn_box = get_world_hitbox(torn)
-        box_box = get_world_hitbox(box)
+        box_box = get_world_hitbox(box1)
 
         if check_aabb_collision(*player_box,*torn_box):
             player.receive_damage(torn.damage)
         
         if check_aabb_collision(*player_box,*box_box):
-            box.receive_damage(player.damage)
+            box1.receive_damage(player.damage)
 
         # Fazendo um teste de remoção
-        if rock in things:
-            if not player.alive:
-                print("Voce morreu")
-                things.remove(rock)
-
-        if box in things:
-            if not box.alive:
-                print("Quebraste a caixa")
-                things.remove(box)
-            
-
-        # FUNÇÃO PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
+        things = removeBeing(object=rock, beings= things, condition=player.alive, message="Voce morreu")
         
-        # pygame.draw.rect(tela,(255, 0, 0),(player.x + player.hitbox[0],player.y + player.hitbox[1],player.hitbox[2],player.hitbox[3]),2)
-        # pygame.draw.rect(tela,(0, 255, 0),(rock.x + rock.hitbox[0],rock.y + rock.hitbox[1],rock.hitbox[2],rock.hitbox[3]),2)
-        # pygame.draw.rect(tela,(0, 0, 0),(enemies[0].x + enemies[0].hitbox[0],enemies[0].y + enemies[0].hitbox[1],enemies[0].hitbox[2],enemies[0].hitbox[3]),2)
-        # pygame.draw.rect(tela,(0, 0, 0),(enemies[1].x + enemies[1].hitbox[0],enemies[1].y + enemies[1].hitbox[1],enemies[1].hitbox[2],enemies[1].hitbox[3]),2)
-        
+        boxes = removeBeing(object=box1, beings=things, condition=box1.alive, message="Quebraste a caixa")
+        # entities = removeBeings(entities)
+
+        # PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
+        # for thing in things:
+        #     pygame.draw.rect(tela,(0, 0, 0),(thing.x + thing.hitbox[0],thing.y + thing.hitbox[1],thing.hitbox[2],thing.hitbox[3]),2)
+
         pygame.display.flip()
 
     pygame.quit()
