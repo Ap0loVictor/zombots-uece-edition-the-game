@@ -8,10 +8,14 @@ class Player(Entity):
     Entidade do Jogador.
     """
 
-    def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0):
-        super().__init__(start_x, start_y, health=100, width=48, height=16, hitbox=(2, 2, 14, 46), damage=10)
+    def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0, attack_duration=0.2):
+        super().__init__(start_x, start_y, health=100, width=16, height=48, hitbox=(2, 2, 14, 46), damage=10)
         self.invincibility_duration = invincibility_duration
         self.invincibility_remaining = 0.0
+
+        self.attack_duration = attack_duration
+        self.attack_timer = 0.0
+        self.has_hit = False
 
         # Mecânica especializada de movimentação (injeção ou padrão)
         self.movement = movement if movement is not None else MovementPlayer(speed=speed, direction=direction)
@@ -39,6 +43,16 @@ class Player(Entity):
             self.start_invincibility()
         return True
 
+    @property
+    def is_attacking(self):
+        return self.attack_timer > 0.0
+
+    def start_attack(self):
+        if not self.alive or self.is_attacking:
+            return
+        self.attack_timer = self.attack_duration
+        self.has_hit = False
+
     # ========================================================
     # ATUALIZAÇÃO
     # ========================================================
@@ -50,6 +64,7 @@ class Player(Entity):
         """
 
         self.invincibility_remaining = max(0.0, self.invincibility_remaining - dt)
+        self.attack_timer = max(0.0, self.attack_timer -dt)
         if self.alive:
             self.x, self.y = self.movement.update(self, dt, keys, level=level, solid_entities=solid_entities, bounds=bounds)
 
@@ -84,7 +99,7 @@ class Player(Entity):
         """
         Retorna a lista de polígonos no espaço de mundo prontos para renderização.
         """
-        return self.sprite.get_world_polygons(self.x, self.y, self.direction)
+        return self.sprite.get_world_polygons(self.x, self.y, self.direction, attacking=self.is_attacking)
 
     # ========================================================
     # GETTERS E PROPRIEDADES DE COMPATIBILIDADE
@@ -119,3 +134,14 @@ class Player(Entity):
     @property
     def was_moving(self):
         return self.movement.was_moving
+
+    def get_attack_hitbox(self, reach=28, size=40):
+        if self.direction in ("left", "right"):
+            w, h = reach, size
+            y = self.y - (h - self.height) / 2
+            x = self.x - reach if self.direction == "left" else self.x + self.width
+        else:
+            w, h = size, reach
+            x = self.x - (w - self.width) / 2
+            y = self.y - reach if self.direction == "up" else self.y + self.height
+        return x, y, w, h

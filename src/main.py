@@ -64,11 +64,13 @@ def runGame():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 running = False
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_SPACE:
+                player.start_attack()
 
         keys = pygame.key.get_pressed() # Atualiza a entidade Player com os inputs do teclado
         
         for enemy in enemies:
-            others = [rock] + [i for i in enemies if i is not enemy]
+            others = [rock] + [i for i in enemies if i is not enemy]  # sem o player aqui
             enemy.update(dt, target=player.get_position(), solid_entities=others, bounds=limits)
 
         player.update(dt=dt, keys=keys, solid_entities=[rock] + enemies, bounds=limits)
@@ -83,7 +85,12 @@ def runGame():
             if enemy.alive:
                 enemy_box = get_world_hitbox(enemy)
                 if check_aabb_collision(*player_box, *enemy_box):
-                    player.receive_damage(enemy.damage) 
+                    if player.receive_damage(enemy.damage):
+                        force = 200
+                        dx = enemy.x - player.x
+                        dy = enemy.y - player.y
+                        dist = max(1, (dx**2 + dy**2) ** 0.5)
+                        enemy.apply_knockback((dx / dist) * force, (dy / dist) * force)
 
         player_box = get_world_hitbox(player)
         torn_box = get_world_hitbox(torn)
@@ -94,6 +101,30 @@ def runGame():
         
         if check_aabb_collision(*player_box,*box_box):
             box1.receive_damage(player.damage)
+
+        if player.is_attacking and not player.has_hit:
+            attack_box = player.get_attack_hitbox()
+
+            for enemy in enemies:
+                if enemy.alive:
+                    enemy_box = get_world_hitbox(enemy)
+                    if check_aabb_collision(*attack_box, *enemy_box):
+                        enemy.receive_damage(player.damage)
+                        player.has_hit = True
+
+                        force = 300
+                        kx, ky = {
+                            "left": (-force, 0), "right": (force, 0),
+                            "up": (0, -force), "down": (0, force)
+                        }[player.direction]
+                        print("inimigo Atigindo")
+                        enemy.apply_knockback(kx, ky)
+
+            if box.alive:
+                box_box = get_world_hitbox(box)
+                if check_aabb_collision(*attack_box, *box_box):
+                    box.receive_damage(player.damage)
+                    player.has_hit = True
 
         # Fazendo um teste de remoção
         things = removeBeing(object=rock, beings= things, condition=player.alive, message="Voce morreu")
