@@ -120,10 +120,10 @@ def runGame():
                         print("inimigo Atigindo")
                         enemy.apply_knockback(kx, ky)
 
-            if box.alive:
-                box_box = get_world_hitbox(box)
+            if box1.alive:
+                box_box = get_world_hitbox(box1)
                 if check_aabb_collision(*attack_box, *box_box):
-                    box.receive_damage(player.damage)
+                    box1.receive_damage(player.damage)
                     player.has_hit = True
 
         # Fazendo um teste de remoção
