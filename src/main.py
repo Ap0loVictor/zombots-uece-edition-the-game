@@ -5,7 +5,7 @@ from src.game.props.Torn import Torn
 from src.game.entities.Enemy import Enemy
 from src.game.entities.Box import Box
 
-from src.engine.rendering import desenhar_poligono, scanline_fill
+from src.engine.rendering import desenhar_poligono, scanline_fill, desenhar_minimapa
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
 def renderizeBeings(beings, tela):
@@ -55,6 +55,9 @@ def runGame():
     enemies = [zombie, robot]
     entities = [player] + boxes + enemies
     things = props + entities
+
+    janela_mundo = (0, 0, width, height)
+    viewport_minimapa = (600, 20, 780, 160)
 
     running = True
 
@@ -135,7 +138,12 @@ def runGame():
         # PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
         # for thing in things:
         #     pygame.draw.rect(tela,(0, 0, 0),(thing.x + thing.hitbox[0],thing.y + thing.hitbox[1],thing.hitbox[2],thing.hitbox[3]),2)
-
+        
+        # Minimapa
+        desenhar_minimapa(tela, things, janela_mundo, viewport_minimapa,
+                           cor_fundo=(10, 10, 20), cor_borda=(255, 255, 255))
         pygame.display.flip()
+
+       
 
     pygame.quit()
