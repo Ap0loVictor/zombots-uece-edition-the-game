@@ -37,8 +37,11 @@ class Enemy(Entity):
 
         if self.knockback_timer > 0.0:
             self.knockback_timer = max(0.0, self.knockback_timer - dt)
-            self.x += self.knockback_dx * dt
-            self.y += self.knockback_dy * dt
+            dx = self.knockback_dx * dt
+            dy = self.knockback_dy * dt
+            self.x, self.y = self.movement.move_axis(
+                self, dx, dy, solid_entities=solid_entities, bounds=bounds
+            )
         else:
             self.x, self.y = self.movement.update(
                 self, dt, target=target,
