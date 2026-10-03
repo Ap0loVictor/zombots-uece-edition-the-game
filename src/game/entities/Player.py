@@ -1,7 +1,7 @@
 from src.game.entities.Entity import Entity
 from src.game.movement.MovementPlayer import MovementPlayer
 from assets.sprites.entities.PlayerSprite import PlayerSprite
-
+from assets.sprites.PixelSprite import PixelSprite
 
 class Player(Entity):
     """
@@ -9,7 +9,7 @@ class Player(Entity):
     """
 
     def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0, attack_duration=0.2):
-        super().__init__(start_x, start_y, health=100, width=16, height=48, hitbox=(2, 2, 14, 46), damage=10)
+        super().__init__(start_x, start_y, health=100, width=64, height=128, hitbox=(17, 20, 32, 90), damage=10)
         self.invincibility_duration = invincibility_duration
         self.invincibility_remaining = 0.0
 
@@ -21,7 +21,8 @@ class Player(Entity):
         self.movement = movement if movement is not None else MovementPlayer(speed=speed, direction=direction)
 
         # Sprite visual temporário com polígonos
-        self.sprite = sprite if sprite is not None else PlayerSprite()
+        
+        self.sprite = sprite if sprite is not None else PixelSprite("assets/pxos/Apolo_Sprites/apolo_idle_32x64.png")
 
     @property
     def is_invincible(self):
@@ -73,12 +74,10 @@ class Player(Entity):
     # ========================================================
 
     def get_facing_point(self, offset=16):
-        """
-        Retorna as coordenadas (px, py) do ponto imediatamente à frente
-        do personagem com base na direção para onde ele está olhando.
-        """
-        px = self.x
-        py = self.y
+        hx, hy, hw, hh = self.hitbox
+
+        px = self.x + hx + hw / 2
+        py = self.y + hy + hh / 2
 
         if self.direction == "up":
             py -= offset
@@ -90,16 +89,54 @@ class Player(Entity):
             px += offset
 
         return px, py
-
     # ========================================================
     # SPRITE / RENDERIZAÇÃO
     # ========================================================
 
     def get_polygons(self):
-        """
-        Retorna a lista de polígonos no espaço de mundo prontos para renderização.
-        """
-        return self.sprite.get_world_polygons(self.x, self.y, self.direction, attacking=self.is_attacking)
+        if hasattr(self.sprite, "get_world_polygons"):
+            return self.sprite.get_world_polygons(
+                self.x,
+                self.y,
+                self.direction,
+                attacking=self.is_attacking
+            )
+
+        hx, hy, hw, hh = self.hitbox
+
+        return [{
+            "name": "body",
+            "vertices": [
+                (self.x + hx, self.y + hy),
+                (self.x + hx + hw, self.y + hy),
+                (self.x + hx + hw, self.y + hy + hh),
+                (self.x + hx, self.y + hy + hh)
+            ],
+            "color": (220, 50, 50)
+        }]
+
+    def get_attack_hitbox(self, reach=28, size=40):
+        hx, hy, hw, hh = self.hitbox
+
+        if self.direction in ("left", "right"):
+            w, h = reach, size
+            x = (
+                self.x + hx - reach
+                if self.direction == "left"
+                else self.x + hx + hw
+            )
+            y = self.y + hy + (hh - h) / 2
+
+        else:
+            w, h = size, reach
+            x = self.x + hx + (hw - w) / 2
+            y = (
+                self.y + hy - reach
+                if self.direction == "up"
+                else self.y + hy + hh
+            )
+        return x, y, w, h
+
 
     # ========================================================
     # GETTERS E PROPRIEDADES DE COMPATIBILIDADE
@@ -134,14 +171,3 @@ class Player(Entity):
     @property
     def was_moving(self):
         return self.movement.was_moving
-
-    def get_attack_hitbox(self, reach=28, size=40):
-        if self.direction in ("left", "right"):
-            w, h = reach, size
-            y = self.y - (h - self.height) / 2
-            x = self.x - reach if self.direction == "left" else self.x + self.width
-        else:
-            w, h = size, reach
-            x = self.x - (w - self.width) / 2
-            y = self.y - reach if self.direction == "up" else self.y + self.height
-        return x, y, w, h

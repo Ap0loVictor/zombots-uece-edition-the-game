@@ -5,14 +5,19 @@ from src.game.props.Torn import Torn
 from src.game.entities.Enemy import Enemy
 from src.game.entities.Box import Box
 
+from src.engine.sprite import draw_sprite_scaled
 from src.engine.rendering import desenhar_poligono, scanline_fill, desenhar_minimapa
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
 def renderizeBeings(beings, tela):
-    for i in range(len(beings)):
-        for being in beings[i].get_polygons():
-            scanline_fill(tela, being["vertices"], being["color"]) # Preenchimento  
-            desenhar_poligono(tela, being["vertices"], being["color"]) # Contorno da borda 
+    for being in beings:
+        
+        if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
+            draw_sprite_scaled(tela,being.sprite.matrix,int(being.x),int(being.y), being.height)
+        else:
+            for polygon in being.get_polygons():
+                scanline_fill(tela, polygon["vertices"], polygon["color"]) # Preenchimento  
+                desenhar_poligono(tela, polygon["vertices"], polygon["color"]) # Contorno da borda 
 
 def removeBeing(beings, object, condition, message):
     if object in beings:
@@ -136,8 +141,8 @@ def runGame():
         # entities = removeBeings(entities)
 
         # PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME 
-        # for thing in things:
-        #     pygame.draw.rect(tela,(0, 0, 0),(thing.x + thing.hitbox[0],thing.y + thing.hitbox[1],thing.hitbox[2],thing.hitbox[3]),2)
+        for thing in things:
+            pygame.draw.rect(tela,(0, 0, 0),(thing.x + thing.hitbox[0],thing.y + thing.hitbox[1],thing.hitbox[2],thing.hitbox[3]),2)
         
         # Minimapa
         desenhar_minimapa(tela, things, janela_mundo, viewport_minimapa,
