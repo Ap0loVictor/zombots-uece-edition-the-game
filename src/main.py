@@ -5,6 +5,7 @@ from src.game.props.Torn import Torn
 from src.game.entities.Enemy import Enemy
 from src.game.entities.Box import Box
 
+from src.engine.sprite import draw_sprite_scaled
 from src.engine.rendering import desenhar_poligono, scanline_fill, desenhar_minimapa
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
@@ -13,10 +14,14 @@ from src.ui.InfoScreen import InfoScreen
 from src.engine.fonte import desenhar_texto_centralizado
 
 def renderizeBeings(beings, tela):
-    for i in range(len(beings)):
-        for being in beings[i].get_polygons():
-            scanline_fill(tela, being["vertices"], being["color"]) # Preenchimento
-            desenhar_poligono(tela, being["vertices"], being["color"]) # Contorno da borda
+    for being in beings:
+        
+        if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
+            draw_sprite_scaled(tela,being.sprite.matrix,int(being.x),int(being.y), being.height)
+        else:
+            for polygon in being.get_polygons():
+                scanline_fill(tela, polygon["vertices"], polygon["color"]) # Preenchimento  
+                desenhar_poligono(tela, polygon["vertices"], polygon["color"]) # Contorno da borda 
 
 def removeBeing(beings, object, condition, message):
     if object in beings:
@@ -224,7 +229,4 @@ def runGame():
             atualizar_partida(partida, tela, dt, keys)
         elif estado in telas_info:
             telas_info[estado].draw(tela)
-
         pygame.display.flip()
-
-    pygame.quit()
