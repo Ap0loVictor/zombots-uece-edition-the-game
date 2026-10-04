@@ -9,7 +9,7 @@ class Player(Entity):
     """
 
     def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0, attack_duration=0.2):
-        super().__init__(start_x, start_y, health=100, width=64, height=128, hitbox=(17, 20, 32, 90), damage=10)
+        super().__init__(start_x, start_y, health=100, width=64, height=128, hitbox=(17, 20, 32, 90), damage=25)
         self.invincibility_duration = invincibility_duration
         self.invincibility_remaining = 0.0
 

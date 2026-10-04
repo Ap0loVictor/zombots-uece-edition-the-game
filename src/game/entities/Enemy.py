@@ -1,6 +1,6 @@
 from src.game.entities.Entity import Entity
 from src.game.movement.MovementEnemies import MovementEnemies
-from assets.sprites.entities.EnemySprite import get_enemy_sprite
+from assets.sprites.entities.EnemySprite import get_enemy_sprite, get_enemy_polygon
 import random
 
 
@@ -13,13 +13,14 @@ class Enemy(Entity):
     """
     
     def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None, damage=0):
-            super().__init__(start_x, start_y, health=50, width=16, height=48, hitbox=(2, 2, 14, 46), damage=damage)
+            super().__init__(start_x, start_y, health=50, width=64, height=128, hitbox=(17, 20, 32, 90), damage=damage)
 
             self.enemy_type = enemy_type if enemy_type is not None else random.choice(["robo", "zumbi"])
             resolved_speed = speed if speed is not None else 100.0
 
             self.movement = movement if movement is not None else MovementEnemies(speed=resolved_speed)
             self.sprite = sprite if sprite is not None else get_enemy_sprite(self.enemy_type)
+            self.minimap_sprite = get_enemy_polygon(self.enemy_type)
             self.knockback_dx = 0.0
             self.knockback_dy = 0.0
             self.knockback_timer = 0.0
@@ -39,9 +40,7 @@ class Enemy(Entity):
             self.knockback_timer = max(0.0, self.knockback_timer - dt)
             dx = self.knockback_dx * dt
             dy = self.knockback_dy * dt
-            self.x, self.y = self.movement.move_axis(
-                self, dx, dy, solid_entities=solid_entities, bounds=bounds
-            )
+            self.x, self.y = self.movement.move_axis(self, dx, dy, solid_entities=solid_entities, bounds=bounds)
         else:
             self.x, self.y = self.movement.update(
                 self, dt, target=target,
@@ -49,7 +48,7 @@ class Enemy(Entity):
             )
 
     def get_polygons(self):
-          return self.sprite.get_world_polygons(self.x, self.y, self.direction)
+          return self.minimap_sprite.get_world_polygons(self.x, self.y, self.direction)
 
 
     def get_position(self):
