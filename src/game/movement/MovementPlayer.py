@@ -15,10 +15,10 @@ class MovementPlayer(Movement):
         super().__init__(speed=speed,direction=direction)
 
     def update(self, entity, dt, keys, level=None, solid_entities=None, bounds=None):
-        left = keys[pygame.K_a] or keys[pygame.K_LEFT]
-        right = keys[pygame.K_d] or keys[pygame.K_RIGHT]
-        up = keys[pygame.K_w] or keys[pygame.K_UP]
-        down = keys[pygame.K_s] or keys[pygame.K_DOWN]
+        left = keys[pygame.K_LEFT]
+        right = keys[pygame.K_RIGHT]
+        up = keys[pygame.K_UP]
+        down = keys[pygame.K_DOWN]
 
         #direções opostas se cancela
         dx = int(right) - int(left)
