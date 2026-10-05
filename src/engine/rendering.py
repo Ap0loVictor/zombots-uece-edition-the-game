@@ -1,6 +1,4 @@
 clip_atual = None  # (xmin, ymin, xmax, ymax) ou None
-from src.engine.clipping import desenhar_poligono_recortado
-
 
 def setPixel(superficie, x, y, cor):
     global clip_atual
@@ -119,6 +117,8 @@ def transforma_poligono(pontos, janela, viewport):
 
 def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor_borda):
     global clip_atual
+    from src.engine.clipping import desenhar_poligono_recortado
+
 
     Vxmin, Vymin, Vxmax, Vymax = viewport
     clip_atual = viewport

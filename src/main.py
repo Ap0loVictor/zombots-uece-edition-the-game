@@ -13,6 +13,7 @@ from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 from src.ui.Menu import Menu
 from src.ui.InfoScreen import InfoScreen
 from src.ui.Intro import Intro
+from src.ui.BarraVida import desenhar_barra_vida
 from src.engine.fonte import desenhar_texto_centralizado
 
 def renderizeBeings(beings, tela, camera_x=0):
@@ -230,6 +231,7 @@ def atualizar_partida(partida, tela, dt, keys):
     # for thing in things:
     #     pygame.draw.rect(tela,(0, 0, 0),(thing.x + thing.hitbox[0],thing.y + thing.hitbox[1],thing.hitbox[2],thing.hitbox[3]),2)
 
+    desenhar_barra_vida(tela, 20, 20, player.health, player.max_health)
     # Minimapa
     desenhar_minimapa(tela, things, janela_camera, partida["viewport_minimapa"],
                        cor_fundo=(10, 10, 20), cor_borda=(255, 255, 255))
