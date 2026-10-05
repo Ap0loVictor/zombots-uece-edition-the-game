@@ -12,6 +12,7 @@ from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
 from src.ui.Menu import Menu
 from src.ui.InfoScreen import InfoScreen
+from src.ui.Intro import Intro
 from src.engine.fonte import desenhar_texto_centralizado
 
 def renderizeBeings(beings, tela, camera_x=0):
@@ -243,6 +244,7 @@ def runGame():
     clock = pygame.time.Clock()
 
     menu = Menu(width, height)
+    intro = Intro(width, height)
     telas_info = {
         "controls": InfoScreen(width, height, "CONTROLS", [
             "SETAS: MOVER",
@@ -269,8 +271,8 @@ def runGame():
     }
 
     # Estados possíveis: "menu", "playing", "paused", "controls", "credits", "settings"
-    estado = "menu"
-    menu.open()
+    estado = "intro"
+    intro.open()
     partida = None
 
     running = True
@@ -281,6 +283,11 @@ def runGame():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 running = False
+
+            elif estado == "intro":
+                if intro.handle_event(evento) == "skip":
+                    estado = "menu"
+                    menu.open()
 
             elif estado == "menu":
                 acao = menu.handle_event(evento)
@@ -320,7 +327,9 @@ def runGame():
                     estado = "menu"
                     menu.open()
 
-        if estado == "menu":
+        if estado == "intro":
+            intro.draw(tela, dt)
+        elif estado == "menu":
             menu.draw(tela)
         elif estado == "playing":
             keys = pygame.key.get_pressed()

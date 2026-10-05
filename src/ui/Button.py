@@ -1,5 +1,6 @@
-from src.engine.rendering import scanline_fill, desenhar_poligono
+from src.engine.rendering import desenhar_poligono
 from src.engine.fonte import desenhar_texto_centralizado
+from src.engine.fill import scanline_fill_gradiente
 
 
 class Button:
@@ -31,16 +32,19 @@ class Button:
 
     def draw(self, tela):
         if self.selected:
-            color = (20, 160, 75)
+            # color = (20, 160, 75)
+            color = ((70, 230, 120), (10, 110, 50)) 
             border_color = (100, 255, 140)
             text_color = (255, 255, 255)
         else:
-            color = (25, 40, 75)
+            # color = (25, 40, 75)
+            color = ((60, 85, 140), (15, 25, 50))  
             border_color = (120, 150, 200)
             text_color = (190, 200, 220)
 
         vertices = self.get_vertices()
-        scanline_fill(tela, vertices, color)
+        topo, base = color
+        scanline_fill_gradiente(tela, vertices, [topo, topo, base, base])
         desenhar_poligono(tela, vertices, border_color)
 
         desenhar_texto_centralizado(
