@@ -126,6 +126,7 @@ class Player(Entity):
             self.sprite = self.sprite_walk_right if self._passo_alternado else self.sprite_idle
         else:
             self.sprite = self.sprite_idle
+            self.flip_x = (self.direction == "left")
             self._timer_passo = 0.0
             self._passo_alternado = False
 
