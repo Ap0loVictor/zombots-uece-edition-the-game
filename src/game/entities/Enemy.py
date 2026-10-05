@@ -63,4 +63,16 @@ class Enemy(Entity):
         return self.movement.speed
 
 
+class SubBoss(Enemy):
+    def __init__(self, start_x, start_y):
+        super().__init__(start_x, start_y, enemy_type="subboss", speed=80.0, damage=25)
+        self.health = self.max_health = 200
+
+
+class FinalBoss(Enemy):
+    def __init__(self, start_x, start_y):
+        super().__init__(start_x, start_y, enemy_type="finalboss", speed=60.0, damage=40)
+        self.health = self.max_health = 500
+
+
 

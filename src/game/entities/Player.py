@@ -1,7 +1,7 @@
 from src.game.entities.Entity import Entity
 from src.game.movement.MovementPlayer import MovementPlayer
 from assets.sprites.entities.PlayerSprite import PlayerSprite
-from assets.sprites.PixelSprite import PixelSprite
+from assets.sprites.PixelSprite import PixelSprite, load_sprite_sheet_frames
 
 class Player(Entity):
     """
@@ -20,9 +20,27 @@ class Player(Entity):
         # Mecânica especializada de movimentação (injeção ou padrão)
         self.movement = movement if movement is not None else MovementPlayer(speed=speed, direction=direction)
 
-        # Sprite visual temporário com polígonos
-        
-        self.sprite = sprite if sprite is not None else PixelSprite("assets/pxos/Apolo_Sprites/apolo_idle_32x64.png")
+        # Sprites PNG (pixel art via setPixel), um por fase da animação
+        base = "assets/pxos/Apolo_Sprites/"
+        self.sprite_idle = PixelSprite(base + "apolo_idle_32x64.png")
+        self.sprite_windup = PixelSprite(base + "apolo_punch_windup_32x64.png")
+        self.sprite_extended = PixelSprite(base + "apolo_punch_extended_32x64.png")
+        self.sprite_recoil = PixelSprite(base + "apolo_punch_recoil_32x64.png")
+        self.sprite_walk_right = PixelSprite(base + "apolo_walk_right_32x64.png")
+        self.dash_frames = load_sprite_sheet_frames(base + "apolo_dash.png", frame_count=11)
+        self.dash_speed_multiplier = 2.5
+        self.dash_duration = 0.2
+        self.dash_cooldown_duration = 0.6
+        self.dash_timer = 0.0
+        self.dash_cooldown_timer = 0.0
+        self.dash_dx = 0.0
+        self.dash_dy = 0.0
+        self.sprite = sprite if sprite is not None else self.sprite_idle
+        self.flip_x = False
+
+        self._timer_passo = 0.0
+        self._passo_alternado = False
+        self._intervalo_passo = 0.12  # troca idle <-> andando a cada 0.12s
 
     @property
     def is_invincible(self):
@@ -35,7 +53,7 @@ class Player(Entity):
         print("IFRAMES ATIVO")
 
     def receive_damage(self, damage):
-        if not self.alive or self.is_invincible or damage <= 0:
+        if not self.alive or self.is_invincible or self.is_dashing or damage <= 0:
             return False
 
         super().receive_damage(damage)
@@ -54,6 +72,60 @@ class Player(Entity):
         self.attack_timer = self.attack_duration
         self.has_hit = False
 
+    @property
+    def is_dashing(self):
+        return self.dash_timer > 0.0
+
+    def start_dash(self):
+        if not self.alive or self.is_dashing or self.dash_cooldown_timer > 0.0:
+            return
+
+        dx, dy = {
+            "left": (-1, 0), "right": (1, 0),
+            "up": (0, -1), "down": (0, 1),
+        }[self.direction]
+
+        self.dash_dx = dx * self.speed * self.dash_speed_multiplier
+        self.dash_dy = dy * self.speed * self.dash_speed_multiplier
+        self.dash_timer = self.dash_duration
+        self.dash_cooldown_timer = self.dash_cooldown_duration
+
+    def _atualizar_sprite(self, dt):
+        self.flip_x = False
+
+        if self.is_dashing:
+            progresso = 1.0 - (self.dash_timer / self.dash_duration)
+            indice = min(len(self.dash_frames) - 1, int(progresso * len(self.dash_frames)))
+            self.sprite = self.dash_frames[indice]
+            self.flip_x = (self.direction == "left")
+            return
+
+        if self.is_attacking:
+            progresso = 1.0 - (self.attack_timer / self.attack_duration)
+
+            if progresso < 0.4:
+                self.sprite = self.sprite_windup
+            elif progresso < 0.8:
+                self.sprite = self.sprite_extended
+            else:
+                self.sprite = self.sprite_recoil
+
+            self.flip_x = (self.direction == "left")
+            return
+
+        if self.is_moving:
+            self._timer_passo += dt
+            if self._timer_passo >= self._intervalo_passo:
+                self._timer_passo = 0.0
+                self._passo_alternado = not self._passo_alternado
+
+            self.flip_x = (self.direction == "left")
+            self.sprite = self.sprite_walk_right if self._passo_alternado else self.sprite_idle
+        else:
+            self.sprite = self.sprite_idle
+            self._timer_passo = 0.0
+            self._passo_alternado = False
+
     # ========================================================
     # ATUALIZAÇÃO
     # ========================================================
@@ -65,9 +137,20 @@ class Player(Entity):
         """
 
         self.invincibility_remaining = max(0.0, self.invincibility_remaining - dt)
-        self.attack_timer = max(0.0, self.attack_timer -dt)
+        self.attack_timer = max(0.0, self.attack_timer - dt)
+        self.dash_cooldown_timer = max(0.0, self.dash_cooldown_timer - dt)
+
         if self.alive:
-            self.x, self.y = self.movement.update(self, dt, keys, level=level, solid_entities=solid_entities, bounds=bounds)
+            if self.is_dashing:
+                self.dash_timer = max(0.0, self.dash_timer - dt)
+                self.x, self.y = self.movement.move_axis(
+                    self, self.dash_dx * dt, self.dash_dy * dt,
+                    level=level, solid_entities=solid_entities, bounds=bounds
+                )
+            else:
+                self.x, self.y = self.movement.update(self, dt, keys, level=level, solid_entities=solid_entities, bounds=bounds)
+
+        self._atualizar_sprite(dt)
 
     # ========================================================
     # PONTO DE INTERAÇÃO / MIRA

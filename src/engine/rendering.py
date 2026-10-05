@@ -122,15 +122,24 @@ def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor
     Vxmin, Vymin, Vxmax, Vymax = viewport
     clip_atual = viewport
 
+    Wxmin, Wymin, Wxmax, Wymax = janela_mundo
+    sy = (Vymax - Vymin) / (Wymax - Wymin)
+
     for y in range(Vymin, Vymax + 1):
         for x in range(Vxmin, Vxmax + 1):
             setPixel(superficie, x, y, cor_fundo)
 
     for being in beings:
-        for parte in being.get_polygons():
-            vertices_view = transforma_poligono(parte["vertices"], janela_mundo, viewport)
-            scanline_fill(superficie, vertices_view, parte["color"])
-            desenhar_poligono(superficie, vertices_view, parte["color"])
+        if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
+            from src.engine.sprite import draw_sprite_scaled  # import local evita ciclo com rendering.py
+            vx, vy = mundo_viewport((being.x, being.y), janela_mundo, viewport)
+            altura_minimapa = max(1, round(being.height * sy))
+            draw_sprite_scaled(superficie, being.sprite.matrix, int(vx), int(vy), altura_minimapa)
+        else:
+            for parte in being.get_polygons():
+                vertices_view = transforma_poligono(parte["vertices"], janela_mundo, viewport)
+                scanline_fill(superficie, vertices_view, parte["color"])
+                desenhar_poligono(superficie, vertices_view, parte["color"])
 
     clip_atual = None  # fora disso, o resto da cena seria recortado também
 

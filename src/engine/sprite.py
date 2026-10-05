@@ -37,7 +37,7 @@ def draw_sprite(surface, matrix, pos_x, pos_y):
 
             setPixel(surface,pos_x + x,pos_y + y,color)
 
-def draw_sprite_scaled(surface, matrix, pos_x, pos_y, target_height):
+def draw_sprite_scaled(surface, matrix, pos_x, pos_y, target_height, flip_x=False):
     original_height, original_width, _ = matrix.shape
 
     if original_height == 0 or target_height <= 0:
@@ -58,9 +58,11 @@ def draw_sprite_scaled(surface, matrix, pos_x, pos_y, target_height):
     for y in range(start_y, end_y):
         for x in range(start_x, end_x):
 
+            x_amostra = (target_width - 1 - x) if flip_x else x
+
             src_x = min(
                 original_width - 1,
-                int(x / scale_factor)
+                int(x_amostra / scale_factor)
             )
             src_y = min(
                 original_height - 1,
