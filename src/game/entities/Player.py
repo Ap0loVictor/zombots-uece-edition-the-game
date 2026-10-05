@@ -16,6 +16,8 @@ class Player(Entity):
         self.attack_duration = attack_duration
         self.attack_timer = 0.0
         self.has_hit = False
+        self.attack_cooldown_duration = 0.4
+        self.attack_cooldown_timer = 0.0
 
         # Mecânica especializada de movimentação (injeção ou padrão)
         self.movement = movement if movement is not None else MovementPlayer(speed=speed, direction=direction)
@@ -28,9 +30,9 @@ class Player(Entity):
         self.sprite_recoil = PixelSprite(base + "apolo_punch_recoil_32x64.png")
         self.sprite_walk_right = PixelSprite(base + "apolo_walk_right_32x64.png")
         self.dash_frames = load_sprite_sheet_frames(base + "apolo_dash.png", frame_count=11)
-        self.dash_speed_multiplier = 2.5
+        self.dash_speed_multiplier = 3.5
         self.dash_duration = 0.2
-        self.dash_cooldown_duration = 0.6
+        self.dash_cooldown_duration = 1.0
         self.dash_timer = 0.0
         self.dash_cooldown_timer = 0.0
         self.dash_dx = 0.0
@@ -67,9 +69,10 @@ class Player(Entity):
         return self.attack_timer > 0.0
 
     def start_attack(self):
-        if not self.alive or self.is_attacking:
+        if not self.alive or self.is_attacking or self.attack_cooldown_timer > 0.0:
             return
         self.attack_timer = self.attack_duration
+        self.attack_cooldown_timer = self.attack_cooldown_duration  
         self.has_hit = False
 
     @property
@@ -123,6 +126,7 @@ class Player(Entity):
             self.sprite = self.sprite_walk_right if self._passo_alternado else self.sprite_idle
         else:
             self.sprite = self.sprite_idle
+            self.flip_x = (self.direction == "left")
             self._timer_passo = 0.0
             self._passo_alternado = False
 
@@ -138,6 +142,7 @@ class Player(Entity):
 
         self.invincibility_remaining = max(0.0, self.invincibility_remaining - dt)
         self.attack_timer = max(0.0, self.attack_timer - dt)
+        self.attack_cooldown_timer = max(0.0, self.attack_cooldown_timer - dt)
         self.dash_cooldown_timer = max(0.0, self.dash_cooldown_timer - dt)
 
         if self.alive:

@@ -25,14 +25,14 @@ class MovementPlayer(Movement):
         dy = int(down) - int(up)
 
         # mantém a orientaçao usada pela mira, priorizando o eixo y
-        if dy < 0:
-            self.direction = "up"
-        elif dy > 0:
-            self.direction = "down"
-        elif dx < 0:
+        if dx < 0:
             self.direction = "left"
         elif dx > 0:
             self.direction = "right"
+        elif dy < 0:
+            self.direction = "up"
+        elif dy > 0:
+            self.direction = "down"
 
         # pra diagonal ter a mesma velocidade dos eixos
         length = hypot(dx, dy)
