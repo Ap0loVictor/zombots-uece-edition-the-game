@@ -12,6 +12,8 @@ from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
 from src.ui.Menu import Menu
 from src.ui.InfoScreen import InfoScreen
+from src.ui.Intro import Intro
+from src.ui.BarraVida import desenhar_barra_vida, desenhar_barra_especial
 from src.engine.fonte import desenhar_texto_centralizado
 
 def renderizeBeings(beings, tela, camera_x=0):
@@ -103,6 +105,7 @@ def nova_partida(width, height):
         "torn": torn,
         "box1": box1,
         "enemies": enemies,
+        "projeteis": [],
         "things": props + entities,
         "fase_atual": fase_atual,
         "width": width,
@@ -185,8 +188,32 @@ def atualizar_partida(partida, tela, dt, keys):
                 box1.receive_damage(player.damage)
                 player.has_hit = True
 
+    # ---- Projéteis do ataque especial (Hadouken) ----
+    projeteis = partida["projeteis"]
+    for proj in projeteis:
+        proj.update(dt, bounds=limits)
+        proj_box = get_world_hitbox(proj)
+
+        if check_aabb_collision(*proj_box, *get_world_hitbox(rock)):
+            proj.alive = False  # a pedra bloqueia o projétil
+            continue
+
+        for enemy in enemies:
+            if enemy.alive and id(enemy) not in proj.atingidos:
+                if check_aabb_collision(*proj_box, *get_world_hitbox(enemy)):
+                    proj.atingidos.add(id(enemy))  # atravessa, mas fere cada inimigo uma vez
+                    enemy.receive_damage(proj.damage)
+                    enemy.apply_knockback(proj.vx * 400, proj.vy * 400)
+
+        if box1.alive and check_aabb_collision(*proj_box, *get_world_hitbox(box1)):
+            box1.receive_damage(proj.damage)
+
+    for proj in projeteis:
+        if proj.alive:
+            proj.draw(tela, camera_x)
+    projeteis[:] = [p for p in projeteis if p.alive]
+
     # Fazendo um teste de remoção
-    removeBeing(object=rock, beings=things, condition=player.alive, message="Voce morreu")
     removeBeing(object=box1, beings=things, condition=box1.alive, message="Quebraste a caixa")
     # entities = removeBeings(entities)
 
@@ -229,6 +256,8 @@ def atualizar_partida(partida, tela, dt, keys):
     # for thing in things:
     #     pygame.draw.rect(tela,(0, 0, 0),(thing.x + thing.hitbox[0],thing.y + thing.hitbox[1],thing.hitbox[2],thing.hitbox[3]),2)
 
+    desenhar_barra_vida(tela, 20, 20, player.health, player.max_health)
+    desenhar_barra_especial(tela, 20, 68, player.special_progress, player.special_ready)
     # Minimapa
     desenhar_minimapa(tela, things, janela_camera, partida["viewport_minimapa"],
                        cor_fundo=(10, 10, 20), cor_borda=(255, 255, 255))
@@ -243,18 +272,20 @@ def runGame():
     clock = pygame.time.Clock()
 
     menu = Menu(width, height)
+    intro = Intro(width, height)
     telas_info = {
         "controls": InfoScreen(width, height, "CONTROLS", [
             "SETAS: MOVER",
             "X: ATACAR",
-            "S: DESVIAR (DASH)",
+            "Z: DESVIAR (DASH)",
+            "C: ATAQUE ESPECIAL"
             "P: PAUSAR",
             "ESC: VOLTAR AO MENU",
         ]),
         "credits": InfoScreen(width, height, "CREDITS", [
             "GABRIEL MARQUES",
             "DAVI JANNSEN",
-            "APOLO",
+            "APOLO VICTOR",
             "",
             "COMPUTACAO GRAFICA - UECE",
         ]),
@@ -269,8 +300,8 @@ def runGame():
     }
 
     # Estados possíveis: "menu", "playing", "paused", "controls", "credits", "settings"
-    estado = "menu"
-    menu.open()
+    estado = "intro"
+    intro.open()
     partida = None
 
     running = True
@@ -281,6 +312,11 @@ def runGame():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 running = False
+
+            elif estado == "intro":
+                if intro.handle_event(evento) == "skip":
+                    estado = "menu"
+                    menu.open()
 
             elif estado == "menu":
                 acao = menu.handle_event(evento)
@@ -296,7 +332,11 @@ def runGame():
             elif estado == "playing":
                 if evento.type == pygame.KEYDOWN and evento.key == pygame.K_x:
                     partida["player"].start_attack()
-                elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_s:
+                elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_c:
+                    projetil = partida["player"].start_special()
+                    if projetil is not None:
+                        partida["projeteis"].append(projetil)
+                elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_z:
                     partida["player"].start_dash()
                 elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
                     estado = "menu"
@@ -308,9 +348,6 @@ def runGame():
                     desenhar_texto_centralizado(tela, "PAUSED", width // 2, height // 2,
                                                 (255, 255, 255), escala=6)
 
-                elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_RSHIFT:
-                    partida["player"].start_dash()
-
             elif estado == "paused":
                 if evento.type == pygame.KEYDOWN and evento.key == pygame.K_p:
                     estado = "playing"
@@ -320,7 +357,9 @@ def runGame():
                     estado = "menu"
                     menu.open()
 
-        if estado == "menu":
+        if estado == "intro":
+            intro.draw(tela, dt)
+        elif estado == "menu":
             menu.draw(tela)
         elif estado == "playing":
             keys = pygame.key.get_pressed()

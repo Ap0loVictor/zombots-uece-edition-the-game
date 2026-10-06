@@ -1,4 +1,5 @@
 from src.game.entities.Entity import Entity
+from src.game.entities.Hadouken import Hadouken
 from src.game.movement.MovementPlayer import MovementPlayer
 from assets.sprites.entities.PlayerSprite import PlayerSprite
 from assets.sprites.PixelSprite import PixelSprite, load_sprite_sheet_frames
@@ -43,10 +44,10 @@ class Player(Entity):
         self._timer_passo = 0.0
         self._passo_alternado = False
         self._intervalo_passo = 0.12  # troca idle <-> andando a cada 0.12s
-
-    @property
-    def is_invincible(self):
-        return self.invincibility_remaining > 0.0
+        self.special_charge_time = 10.0
+        self.special_timer = 0.0
+        self.cast_duration = 0.3
+        self.cast_timer = 0.0
 
     def start_invincibility(self):
         if not self.alive or self.is_invincible or self.invincibility_duration <= 0:
@@ -64,20 +65,6 @@ class Player(Entity):
             self.start_invincibility()
         return True
 
-    @property
-    def is_attacking(self):
-        return self.attack_timer > 0.0
-
-    def start_attack(self):
-        if not self.alive or self.is_attacking or self.attack_cooldown_timer > 0.0:
-            return
-        self.attack_timer = self.attack_duration
-        self.attack_cooldown_timer = self.attack_cooldown_duration  
-        self.has_hit = False
-
-    @property
-    def is_dashing(self):
-        return self.dash_timer > 0.0
 
     def start_dash(self):
         if not self.alive or self.is_dashing or self.dash_cooldown_timer > 0.0:
@@ -100,6 +87,11 @@ class Player(Entity):
             progresso = 1.0 - (self.dash_timer / self.dash_duration)
             indice = min(len(self.dash_frames) - 1, int(progresso * len(self.dash_frames)))
             self.sprite = self.dash_frames[indice]
+            self.flip_x = (self.direction == "left")
+            return
+        
+        if self.is_casting:
+            self.sprite = self.sprite_extended  # braço estendido enquanto lança
             self.flip_x = (self.direction == "left")
             return
 
@@ -145,7 +137,11 @@ class Player(Entity):
         self.attack_cooldown_timer = max(0.0, self.attack_cooldown_timer - dt)
         self.dash_cooldown_timer = max(0.0, self.dash_cooldown_timer - dt)
 
+        self.cast_timer = max(0.0, self.cast_timer - dt)
+
         if self.alive:
+            
+            self.special_timer = min(self.special_charge_time, self.special_timer + dt)
             if self.is_dashing:
                 self.dash_timer = max(0.0, self.dash_timer - dt)
                 self.x, self.y = self.movement.move_axis(
@@ -235,6 +231,50 @@ class Player(Entity):
 
     def get_direction(self):
         return self.movement.direction
+
+
+    @property
+    def is_invincible(self):
+        return self.invincibility_remaining > 0.0
+
+    @property
+    def is_attacking(self):
+        return self.attack_timer > 0.0
+
+    def start_attack(self):
+        if not self.alive or self.is_attacking or self.attack_cooldown_timer > 0.0:
+            return
+        self.attack_timer = self.attack_duration
+        self.attack_cooldown_timer = self.attack_cooldown_duration  
+        self.has_hit = False
+
+    @property
+    def is_dashing(self):
+        return self.dash_timer > 0.0
+    
+    @property
+    def special_progress(self):
+        """0.0 a 1.0: quanto da barra do especial está cheia."""
+        return min(1.0, self.special_timer / self.special_charge_time)
+
+    @property
+    def special_ready(self):
+        return self.special_timer >= self.special_charge_time
+
+    @property
+    def is_casting(self):
+        return self.cast_timer > 0.0
+
+    def start_special(self):
+        """Dispara o Hadouken se a barra estiver cheia. Retorna o projétil ou None."""
+        if not self.alive or not self.special_ready or self.is_dashing or self.is_casting:
+            return None
+
+        self.special_timer = 0.0
+        self.cast_timer = self.cast_duration
+
+        fx, fy = self.get_facing_point(offset=34)  # nasce na frente do jogador
+        return Hadouken(fx, fy, self.direction)
 
     @property
     def direction(self):
