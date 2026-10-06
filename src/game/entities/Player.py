@@ -66,14 +66,14 @@ class Player(Entity):
             self.sprite_recoil = PixelSprite(base + "Atack/davi_guard2_pose_32x64.png")
             self.walk_frames = load_sprite_sheet_frames(base + "Walking/walk_spritesheet_256x64(2).png", frame_count=8)
             self.sprite_walk_right = self.walk_frames[1]
-            self.dash_frames = [self.sprite_idle]
+            self.dash_frames = load_sprite_sheet_frames(base + "jan_dash_style2_sheet_112x64.png", frame_count=11)
         elif self.character == "marques":
             self.sprite_windup, self.sprite_extended, self.sprite_recoil = load_sprite_sheet_frames(
                 base + "Fight_Set/punch_spritesheet_96x64.png", frame_count=3
             )
             self.walk_frames = load_sprite_sheet_frames(base + "Walking_Set/walk_spritesheet_256x64.png", frame_count=8)
             self.sprite_walk_right = self.walk_frames[1]
-            self.dash_frames = [self.sprite_idle]
+            self.dash_frames = load_sprite_sheet_frames(base + "marques_dash_style2_sheet_112x64.png", frame_count=11)
 
         self.sprite = sprite if sprite is not None else self.sprite_idle
 
