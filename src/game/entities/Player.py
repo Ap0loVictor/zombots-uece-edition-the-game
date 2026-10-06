@@ -29,14 +29,6 @@ class Player(Entity):
         # Mecânica especializada de movimentação (injeção ou padrão)
         self.movement = movement if movement is not None else MovementPlayer(speed=speed, direction=direction)
 
-        # Sprites PNG (pixel art via setPixel), um por fase da animação
-        base = "assets/pxos/Apolo_Sprites/"
-        self.sprite_idle = PixelSprite(base + "apolo_idle_32x64.png")
-        self.sprite_windup = PixelSprite(base + "apolo_punch_windup_32x64.png")
-        self.sprite_extended = PixelSprite(base + "apolo_punch_extended_32x64.png")
-        self.sprite_recoil = PixelSprite(base + "apolo_punch_recoil_32x64.png")
-        self.sprite_walk_right = PixelSprite(base + "apolo_walk_right_32x64.png")
-        self.dash_frames = load_sprite_sheet_frames(base + "apolo_dash.png", frame_count=11)
         self.dash_speed_multiplier = 3.5
         self.dash_duration = 0.2
         self.dash_cooldown_duration = 1.0
@@ -44,37 +36,46 @@ class Player(Entity):
         self.dash_cooldown_timer = 0.0
         self.dash_dx = 0.0
         self.dash_dy = 0.0
-        self.sprite = sprite if sprite is not None else self.sprite_idle
         self.flip_x = False
 
         self._timer_passo = 0.0
-        self._passo_alternado = False
-        self._intervalo_passo = 0.12  # troca idle <-> andando a cada 0.12s
+        self._indice_passo = 0
+        self._intervalo_passo = 0.12  # avança um frame da caminhada a cada 0.12s
         self.special_charge_time = 10.0
         self.special_timer = 0.0
         self.cast_duration = 0.3
         self.cast_timer = 0.0
 
-        self.character = character
-        dados = PERSONAGENS.get(character, PERSONAGENS["apolo"])
+        # Carrega ações somente do personagem confirmado na seleção.
+        self.character = character if character in PERSONAGENS else "apolo"
+        dados = PERSONAGENS[self.character]
         base = dados["pasta"]
+        self.sprite_idle = PixelSprite(base + dados["idle"])
 
-        if character == "apolo":
-            self.sprite_idle = PixelSprite(base + "apolo_idle_32x64.png")
+        if self.character == "apolo":
             self.sprite_windup = PixelSprite(base + "apolo_punch_windup_32x64.png")
             self.sprite_extended = PixelSprite(base + "apolo_punch_extended_32x64.png")
             self.sprite_recoil = PixelSprite(base + "apolo_punch_recoil_32x64.png")
             self.sprite_walk_right = PixelSprite(base + "apolo_walk_right_32x64.png")
+            self.walk_frames = [self.sprite_idle, self.sprite_walk_right]
             self.dash_frames = load_sprite_sheet_frames(base + "apolo_dash.png", frame_count=11)
-        else:
-            # Jannsen/Marques só têm o idle -> mesma imagem usada em todos os estados
-            idle = PixelSprite(base + dados["idle"])
-            self.sprite_idle = idle
-            self.sprite_windup = idle
-            self.sprite_extended = idle
-            self.sprite_recoil = idle
-            self.sprite_walk_right = idle
-            self.dash_frames = [idle]
+        elif self.character == "jannsen":
+            # PNGs exportados sem alterações dos arquivos .pxo na mesma pasta.
+            self.sprite_windup = PixelSprite(base + "Atack/davi_guard_pose_32x64.png")
+            self.sprite_extended = PixelSprite(base + "Atack/davi_punch_pose_32x64.png")
+            self.sprite_recoil = PixelSprite(base + "Atack/davi_guard2_pose_32x64.png")
+            self.walk_frames = load_sprite_sheet_frames(base + "Walking/walk_spritesheet_256x64(2).png", frame_count=8)
+            self.sprite_walk_right = self.walk_frames[1]
+            self.dash_frames = [self.sprite_idle]
+        elif self.character == "marques":
+            self.sprite_windup, self.sprite_extended, self.sprite_recoil = load_sprite_sheet_frames(
+                base + "Fight_Set/punch_spritesheet_96x64.png", frame_count=3
+            )
+            self.walk_frames = load_sprite_sheet_frames(base + "Walking_Set/walk_spritesheet_256x64.png", frame_count=8)
+            self.sprite_walk_right = self.walk_frames[1]
+            self.dash_frames = [self.sprite_idle]
+
+        self.sprite = sprite if sprite is not None else self.sprite_idle
 
     def start_invincibility(self):
         if not self.alive or self.is_invincible or self.invincibility_duration <= 0:
@@ -139,15 +140,15 @@ class Player(Entity):
             self._timer_passo += dt
             if self._timer_passo >= self._intervalo_passo:
                 self._timer_passo = 0.0
-                self._passo_alternado = not self._passo_alternado
+                self._indice_passo = (self._indice_passo + 1) % len(self.walk_frames)
 
             self.flip_x = (self.direction == "left")
-            self.sprite = self.sprite_walk_right if self._passo_alternado else self.sprite_idle
+            self.sprite = self.walk_frames[self._indice_passo]
         else:
             self.sprite = self.sprite_idle
             self.flip_x = (self.direction == "left")
             self._timer_passo = 0.0
-            self._passo_alternado = False
+            self._indice_passo = 0
 
     # ========================================================
     # ATUALIZAÇÃO
