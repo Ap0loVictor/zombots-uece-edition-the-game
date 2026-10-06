@@ -62,7 +62,7 @@ def fase_3(offset_x, width, height):
     return [
         Enemy(start_x=offset_x + 20, start_y=200, enemy_type="zombie", damage=5),
         Enemy(start_x=offset_x + width - 20, start_y=200, enemy_type="robot", damage=5),
-        Enemy(start_x=offset_x + width // 2, start_y=100, enemy_type="zombie", damage=5),
+        Enemy(start_x=offset_x + width // 2, start_y=100, enemy_type="bobie", damage=5),
     ]
 
 def fase_4(offset_x, width, height):
@@ -135,25 +135,16 @@ def atualizar_partida(partida, tela, dt, keys):
     player.update(dt=dt, keys=keys, solid_entities=[rock] if player.is_dashing else [rock] + enemies, bounds=limits)
     box1.update(dt)
 
+    # Verifica contato após o movimento; o primeiro frame do ataque já será desenhado.
+    for enemy in enemies:
+        enemy.try_attack(player)
+
     tela.fill((30, 30, 45))
 
     janela_camera = calcular_camera(player, partida["width"], partida["height"], partida["largura_mundo"])
     camera_x = janela_camera[0]
 
     renderizeBeings(things, tela=tela, camera_x=camera_x)
-
-    player_box = get_world_hitbox(player)
-
-    for enemy in enemies:
-        if enemy.alive:
-            enemy_box = get_world_hitbox(enemy)
-            if check_aabb_collision(*player_box, *enemy_box):
-                if player.receive_damage(enemy.damage):
-                    force = 200
-                    dx = enemy.x - player.x
-                    dy = enemy.y - player.y
-                    dist = max(1, (dx**2 + dy**2) ** 0.5)
-                    enemy.apply_knockback((dx / dist) * force, (dy / dist) * force)
 
     player_box = get_world_hitbox(player)
     torn_box = get_world_hitbox(torn)

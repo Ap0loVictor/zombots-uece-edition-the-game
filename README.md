@@ -136,11 +136,12 @@ Escolhidos na tela de seleção:
 
 ### Inimigos
 
-| Inimigo | Vida | Dano de contato | Velocidade | Observação |
+| Inimigo | Vida | Dano por ataque | Velocidade | Observação |
 |---------|-----:|----------------:|-----------:|------------|
 | 🧟 **Zumbi** | 50 | 5 | 100 | Persegue o jogador |
 | 🤖 **Robô** | 50 | 5 | 100 | Persegue o jogador |
 | 🧟🤖 **Zombot** | 50 | 5 | 100 | Híbrido zumbi + robô |
+| 🧟 **Bobie-Zombie** | 50 | 5 | 100 | Inimigo regular da área 3 |
 | 👾 **Sub-Chefe** | 200 | 25 | 80 | Área 5 — 🚧 sprite definitivo pendente |
 | 👾 **Chefe Final** | 500 | 40 | 60 | Área 6 — 🚧 sprite definitivo pendente |
 
@@ -175,13 +176,20 @@ O jogador começa com **100 HP**. Ao receber dano de contato (inimigo ou espinho
 
 Os inimigos perseguem o jogador deslocando-se em direção à sua posição, com uma força de **separação** que evita que se sobreponham uns aos outros. Ao serem atingidos, sofrem _knockback_ temporário.
 
+`Enemy.try_attack(player)` inicia o ataque somente quando as hitboxes se sobrepõem.
+Cada inimigo tem um **cooldown de 1 segundo entre inícios de ataques**, com uma
+única tentativa de dano por golpe. A animação dura 0,6 s; durante esse período,
+o inimigo para de perseguir, mas ainda pode sofrer knockback. A invencibilidade
+e o dash do jogador bloqueiam o dano sem reiniciar a animação nem o cooldown.
+Os sprites são carregados das pastas atualizadas em `assets/pxos/`.
+
 ### Progressão
 
 | Área | Inimigos |
 |-----:|----------|
 | 1 | Zumbi + Zombot |
 | 2 | Zumbi + Robô |
-| 3 | Zumbi + Robô + Zumbi |
+| 3 | Zumbi + Robô + Bobie-Zombie |
 | 4 | Zumbi + Robô + Robô |
 | 5 | **Sub-Chefe** |
 | 6 | **Chefe Final** |
@@ -273,6 +281,7 @@ Construída em `src/ui/Intro.py` com duas camadas: uma camada **estática** (mon
 ### Animações
 
 - **Apolo:** troca de quadros no andar, soco em 3 fases (preparo → extensão → recuo), dash em 11 quadros, pose de lançamento do especial.
+- **Zumbi, Robô, Zombot e Bobie-Zombie:** caminhada e ataque em 8 quadros, com espelhamento para a esquerda. Os chefes usam provisoriamente as animações do zumbi.
 - **Caixa:** 11 quadros de destruição em 0,5 s.
 - **Hadouken:** estrelas giratórias com pulso de escala e cauda de elipses.
 - **Interface:** seta de transição pulsante, luz da antena piscando, órbita elíptica na abertura.
@@ -304,7 +313,8 @@ Construída em `src/ui/Intro.py` com duas camadas: uma camada **estática** (mon
 
 **Em desenvolvimento**
 
-- [ ] Sprites definitivos dos inimigos (zumbi, robô, zombot) e dos chefes
+- [x] Sprites e animações dos inimigos (zumbi, robô, zombot e Bobie-Zombie)
+- [ ] Sprites definitivos dos chefes
 - [ ] Sprites de animação de Jannsen e Marques
 - [ ] Mapas / cenários das fases (arquivos já em `assets/pxos/Fases/`)
 - [ ] Tela de Game Over
