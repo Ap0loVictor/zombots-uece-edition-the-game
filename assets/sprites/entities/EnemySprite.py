@@ -1,5 +1,44 @@
 from assets.sprites.sprite import Sprite
-from assets.sprites.PixelSprite import PixelSprite
+from assets.sprites.PixelSprite import load_sprite_sheet_frames
+
+
+# Caminhos apenas: os frames são carregados quando o inimigo é criado.
+ENEMY_ANIMATIONS = {
+    "zombie": {
+        "idle": ("Zombie_Sprites/zombie_idle_32x64_sheet.png", 6),
+        "walk": ("Zombie_Sprites/Walking_Sprites/zombie_walk_spritesheet_256x64.png", 8),
+        "attack": ("Zombie_Sprites/Atack_Sprites/zombie_attack_spritesheet_4x_1024x256.png", 8),
+    },
+    "robot": {
+        "idle": ("Robot_Sprites/robot_idle_32x64_sheet.png", 6),
+        "walk": ("Robot_Sprites/robot_walk_spritesheet_256x64.png", 8),
+        "attack": ("Robot_Sprites/robot_attack_spritesheet_256x64.png", 8),
+    },
+    "zombot": {
+        "idle": ("Zombot_Sprites/zombot_idle_32x64_sheet.png", 6),
+        "walk": ("Zombot_Sprites/zombot_walk_spritesheet_256x64.png", 8),
+        "attack": ("Zombot_Sprites/zombot_attack_spritesheet_256x64.png", 8),
+    },
+    "bobie": {
+        "idle": ("Bobie-Zombie_Sprites/bobie_idle_32x64_sheet.png", 6),
+        "walk": ("Bobie-Zombie_Sprites/bobie_walk_spritesheet_256x64.png", 8),
+        "attack": ("Bobie-Zombie_Sprites/bobie_attack_spritesheet_256x64.png", 8),
+    },
+}
+
+
+def _animation_paths(enemy_type):
+    aliases = {"robo": "robot", "zumbi": "zombie", "bobie-zombie": "bobie"}
+    enemy_type = aliases.get(enemy_type.lower(), enemy_type.lower())
+    # Chefes continuam usando o visual do zumbi até terem assets próprios.
+    return ENEMY_ANIMATIONS.get(enemy_type, ENEMY_ANIMATIONS["zombie"])
+
+
+def get_enemy_animations(enemy_type="zombie"):
+    return {
+        state: load_sprite_sheet_frames("assets/pxos/" + path, frame_count=count)
+        for state, (path, count) in _animation_paths(enemy_type).items()
+    }
 
 ROBO = (0, 0, 255)
 ZOMBIES = (0, 128, 0)
@@ -42,15 +81,9 @@ class EnemySprite(Sprite):
 
 
 def get_enemy_sprite(enemy_type="zombie"):
-    """Sprite de imagem para a renderização principal."""
-    sprites = {
-        "robot": "assets/pxos/bases/robotBase.png",
-        "zombie": "assets/pxos/bases/zombieBase.png",
-        "zombot": "assets/pxos/bases/zombotBase.png"
-    }
-
-    path = sprites.get(enemy_type, sprites["zombie"])
-    return PixelSprite(path)
+    """Primeiro frame idle, mantendo a interface usada por outros chamadores."""
+    path, count = _animation_paths(enemy_type)["idle"]
+    return load_sprite_sheet_frames("assets/pxos/" + path, frame_count=count)[0]
 
 
 def get_enemy_polygon(enemy_type="zombie"):
@@ -65,4 +98,3 @@ def get_enemy_polygon(enemy_type="zombie"):
         return EnemySprite(FINAL_BOSS)
 
     return EnemySprite(ZOMBIES)
-
