@@ -2,457 +2,367 @@
 
 ![intro](assets/img/zombots_cg.png)
 
+> 🎥 **Vídeo da execução:** 🚧 _[adicionar link aqui antes da entrega]_
+
 ## Visão Geral
 
-**Zombots — UECE Edition** é um jogo **2D Arcade** no estilo **Beat 'em up**, desenvolvido como trabalho da disciplina de **Computação Gráfica**.
+**Zombots — UECE Edition** é um jogo **2D Arcade** no estilo **Beat 'em up**, desenvolvido como trabalho da disciplina de **Computação Gráfica** (UECE).
 
-O jogo se passa na **Universidade Estadual do Ceará (UECE)**, que foi invadida por robôs e zumbis. O jogador controla **Apolo**, um viajante do tempo que retorna ao passado para tentar impedir o apocalipse que ele mesmo ajudou a causar.
+O jogo se passa na **Universidade Estadual do Ceará (UECE)**, invadida por robôs e zumbis. O jogador controla um viajante do tempo que retorna ao passado para tentar impedir o apocalipse que ele mesmo ajudou a causar.
 
-O projeto também tem como objetivo aplicar conceitos fundamentais de **Computação Gráfica 2D**, com a implementação manual de algoritmos de rasterização, transformações geométricas, preenchimento de regiões, mapeamento de texturas e outros recursos gráficos.
+Todo o desenho do jogo é feito **pixel a pixel**: o projeto implementa manualmente os algoritmos de rasterização, preenchimento, transformações geométricas, window/viewport, recorte e mapeamento de texturas. O Pygame é usado apenas para abrir a janela, ler o teclado, carregar arquivos de imagem e exibir o buffer de pixels.
+
+---
+
+## Sumário
+
+- [História](#história)
+- [Conceito do Jogo](#conceito-do-jogo)
+- [Como Executar](#como-executar)
+- [Como Jogar](#como-jogar)
+- [Elementos do Jogo](#elementos-do-jogo)
+- [Características do Jogo](#características-do-jogo)
+- [Implementações de Computação Gráfica](#implementações-de-computação-gráfica)
+- [Status do Projeto](#status-do-projeto)
+- [Arquitetura e Estrutura](#arquitetura-do-projeto)
+- [Equipe](#equipe)
 
 ---
 
 ## História
 
-### Lore
-
 No passado, **Apolo** cometeu um erro que acabou desencadeando um apocalipse zumbi.
 
-Para tentar reverter a situação, ele desenvolveu robôs com o objetivo de ajudar a população a sobreviver.
+Para tentar reverter a situação, ele desenvolveu robôs com o objetivo de ajudar a população a sobreviver. Porém, a inteligência artificial dos robôs foi corrompida, e eles passaram a enxergar os humanos como uma ameaça, unindo-se aos zumbis. A UECE foi rapidamente tomada por **zumbis e robôs hostis**, dando início a um apocalipse ainda pior.
 
-Porém, a inteligência artificial dos robôs foi corrompida, e eles passaram a enxergar os humanos como uma ameaça, unindo-se aos zumbis.
+Anos depois, **Apolo do futuro** — que perdeu o braço em um ataque zumbi e hoje carrega um braço mecânico — descobre uma forma de viajar no tempo. Seu objetivo é retornar ao momento em que tudo começou e impedir que o desastre aconteça.
 
-A UECE foi rapidamente tomada por **zumbis e robôs hostis**, dando início a um apocalipse ainda pior.
-
-Anos depois, **Apolo do futuro** — que perdeu o braço em um ataque zumbi e hoje carrega um braço mecânico em seu lugar — descobre uma forma de viajar no tempo.
-
-Seu objetivo é retornar ao momento em que tudo começou e impedir que o desastre aconteça.
-
-Porém, a máquina do tempo já vem com uma configuração fixa, que o leva direto para o meio dos acontecimentos dentro da UECE, sem chance de chegar antes e evitar o caos logo no início. Agora, Apolo precisa enfrentar tudo o que acontece na universidade antes que seja tarde demais.
+Porém, a máquina do tempo já vem com uma configuração fixa, que o leva direto para o meio dos acontecimentos dentro da UECE, sem chance de evitar o caos logo no início. Agora, Apolo precisa enfrentar tudo o que acontece na universidade antes que seja tarde demais.
 
 ---
 
 ## Conceito do Jogo
 
-- **Gênero:** Arcade
-- **Estilo:** Beat 'em up
-- **Plataforma:** [...]
-- **Resolução:** [...]
-- **Engine/Bibliotecas:** [...]
-- **Linguagem:** [...]
-- **Disciplina:** Computação Gráfica
+| Item | Descrição |
+|------|-----------|
+| **Gênero** | Arcade / Beat 'em up |
+| **Visão** | 2D, lateral com movimento nos 4 eixos (estilo _Streets of Rage_) |
+| **Plataforma** | Windows, Linux e macOS |
+| **Resolução** | 800 × 600 px, 60 FPS |
+| **Linguagem** | Python 3 (testado com 3.11) |
+| **Bibliotecas** | [Pygame](https://www.pygame.org/) (janela, eventos, `set_at`, carga de imagens) e [NumPy](https://numpy.org/) (matrizes de pixels dos sprites) |
+| **Disciplina** | Computação Gráfica — UECE |
+
+---
+
+## Como Executar
+
+### Requisitos
+
+- [Python 3.10+](https://www.python.org/downloads/) (testado com 3.11)
+- `pip`
+- Git
+
+### Passo a passo
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/Ap0loVictor/zombots-uece-edition-the-game.git
+cd zombots-uece-edition-the-game
+
+# 2. (Recomendado) criar um ambiente virtual
+python -m venv venv
+source venv/bin/activate        # Linux / macOS
+venv\Scripts\activate           # Windows (PowerShell / CMD)
+
+# 3. Instalar as dependências
+pip install -r requirements.txt
+
+# 4. Executar o jogo (sempre a partir da raiz do projeto)
+python main.py
+```
+
+> ⚠️ O jogo deve ser executado **a partir da raiz do repositório**, pois os assets são carregados por caminhos relativos (`assets/...`).
+>
+> Em Linux/macOS, use `python3` caso `python` não esteja disponível.
+
+Não há etapa de compilação: o projeto é interpretado.
 
 ---
 
 ## Como Jogar
 
-Para executar o protótipo, com Python e Pygame instalados, rode na raiz do projeto:
-
-```bash
-python3 main.py
-```
-
-O jogador recebe 2 segundos de invencibilidade após cada golpe não letal.
-Ao iniciar esse intervalo, o terminal exibe `IFRAMES ACTIVE` uma vez.
-Golpes bloqueados não descontam vida nem prolongam a proteção. A duração pode
-ser configurada pelo argumento `invincibility_duration` de `Player`, em segundos.
-Os inimigos continuam recebendo dano normalmente.
-
-Para executar os testes automatizados:
-
-```bash
-python3 -m unittest discover -s tests -v
-```
-
 ### Objetivo
 
-[...]
+Atravessar as **6 áreas** da UECE de ponta a ponta, derrotando todos os inimigos de cada área para liberar o avanço, até **derrotar o Chefe Final**.
 
-O jogador deverá:
+1. Derrote todos os inimigos da área atual.
+2. Quando a área for liberada, aparece uma **seta amarela** pulsando: siga em frente para a direita.
+3. A câmera acompanha o jogador, e **não é possível voltar** para áreas anteriores.
+4. Sobreviva às 4 áreas de inimigos comuns, ao **Sub-Chefe** (área 5) e ao **Chefe Final** (área 6).
 
-- [...]
-- [...]
-- [...]
-- [...]
-- [...]
+### Controles
 
----
+| Ação | Tecla |
+|------|-------|
+| Mover | `←` `↑` `→` `↓` |
+| Ataque (soco) | `X` |
+| Dash | `Z` |
+| Ataque especial (Hadouken) | `C` _(quando a barra estiver cheia)_ |
+| Pausar / despausar | `P` |
+| Voltar ao menu | `ESC` |
 
-## Controles
+**Nos menus:** `↑` `↓` navegam, `ENTER` seleciona, `ESC` volta. Na seleção de personagem, use `←` `→`. Na tela de abertura, `ENTER`, `ESPAÇO` ou `ESC` pulam a animação.
 
-| Ação | Teclado |
-|------|---------|
-| Mover para cima | `[...]` |
-| Mover para baixo | `[...]` |
-| Mover para esquerda | `[...]` |
-| Mover para direita | `[...]` |
-| Ataque | `[...]` |
-| Ataque especial | `[...]` |
-| Interagir | `[...]` |
-| Pausar | `[...]` |
-| Sair | `[...]` |
+### HUD
 
----
-
-## HUD
-
-- ❤️ **Vida:** [...]
-- ⚔️ **Pontuação:** [...]
-- 💰 **Itens:** [...]
-- 🔥 **Combo:** [...]
-- ⏱️ **Tempo:** [...]
+- **Barra de vida (HP):** gradiente que muda de cor conforme a vida (verde → amarelo → vermelho).
+- **Barra de especial:** azul enquanto carrega, dourada e piscando (`C: HADOUKEN!`) quando pronta.
+- **Minimapa:** viewport no canto superior direito que mostra uma versão reduzida da janela do mundo.
 
 ---
 
 ## Elementos do Jogo
 
+### Personagens jogáveis
+
+Escolhidos na tela de seleção:
+
+| Personagem | Status |
+|------------|--------|
+| 👨 **Apolo** | Completo: idle, caminhada, soco (3 frames), dash (11 frames) e especial |
+| 👨 **Jannsen** | 🚧 Apenas sprite idle por enquanto (sprites de animação em produção) |
+| 👨 **Marques** | 🚧 Apenas sprite idle por enquanto (sprites de animação em produção) |
+
+### Inimigos
+
+| Inimigo | Vida | Dano de contato | Velocidade | Observação |
+|---------|-----:|----------------:|-----------:|------------|
+| 🧟 **Zumbi** | 50 | 5 | 100 | Persegue o jogador |
+| 🤖 **Robô** | 50 | 5 | 100 | Persegue o jogador |
+| 🧟🤖 **Zombot** | 50 | 5 | 100 | Híbrido zumbi + robô |
+| 👾 **Sub-Chefe** | 200 | 25 | 80 | Área 5 — 🚧 sprite definitivo pendente |
+| 👾 **Chefe Final** | 500 | 40 | 60 | Área 6 — 🚧 sprite definitivo pendente |
+
+### Cenário e objetos
+
 | Elemento | Descrição |
 |----------|-----------|
-| 👨 **Apolo** | Personagem controlado pelo jogador. |
-| 🧟 **Zumbi** | [...] |
-| 🤖 **Zombot** | [...] |
-| 👾 **Boss** | [...] |
-| 🏫 **UECE** | Cenário principal do jogo. |
-| ❤️ **Vida** | [...] |
-| [...] | [...] |
+| 🪨 **Pedra (Rock)** | Obstáculo sólido. Bloqueia o jogador, os inimigos e o Hadouken. |
+| ⚠️ **Espinho (Torn)** | Armadilha: causa 10 de dano por contato. |
+| 📦 **Caixa (Box)** | Quebrável (1 de vida), com animação de destruição de 11 frames. |
+| 🏫 **UECE** | Cenário dividido em 6 áreas de 900 px (mundo de 5400 px de largura). |
 
 ---
 
-# Características do Jogo
+## Características do Jogo
 
-## Sistema de Combate
+### Sistema de Combate
 
-[...]
+- **Soco (`X`):** duração de 0,2 s e _cooldown_ de 0,4 s. Causa 25 de dano e aplica _knockback_ na direção do golpe. Cada golpe acerta no máximo um inimigo.
+- **Dash (`Z`):** impulso de 0,2 s a 3,5× a velocidade normal, _cooldown_ de 1 s. Durante o dash o jogador é **imune a dano** e atravessa inimigos.
+- **Especial — Hadouken (`C`):** projétil que **atravessa inimigos**, ferindo cada um uma vez (40 de dano). A barra leva **10 s** para carregar. É bloqueado por pedras e desaparece ao sair do mundo ou após 2 s.
 
-### Ataques
+### Sistema de Vida
 
-- Ataque básico: [...]
-- Ataque especial: [...]
-- Combo: [...]
-- [...]
+O jogador começa com **100 HP**. Ao receber dano de contato (inimigo ou espinho):
 
----
+1. A vida é reduzida e o inimigo sofre _knockback_;
+2. O jogador fica **2 s invencível** (_i-frames_); golpes bloqueados não descontam vida;
+3. Com 0 HP o personagem morre. 🚧 _A tela de Game Over ainda será implementada._
 
-## Sistema de Inimigos
+### Inimigos e IA
 
-Os inimigos possuem diferentes comportamentos e características.
+Os inimigos perseguem o jogador deslocando-se em direção à sua posição, com uma força de **separação** que evita que se sobreponham uns aos outros. Ao serem atingidos, sofrem _knockback_ temporário.
 
-### Zumbis
+### Progressão
 
-[...]
+| Área | Inimigos |
+|-----:|----------|
+| 1 | Zumbi + Zombot |
+| 2 | Zumbi + Robô |
+| 3 | Zumbi + Robô + Zumbi |
+| 4 | Zumbi + Robô + Robô |
+| 5 | **Sub-Chefe** |
+| 6 | **Chefe Final** |
 
-### Zombots
-
-[...]
-
-### Chefes
-
-[...]
-
----
-
-## Sistema de Colisão
-
-[...]
-
-O sistema de colisões é utilizado para:
-
-- Detectar ataques;
-- Detectar contato entre personagens;
-- Impedir que o jogador atravesse obstáculos;
-- Detectar interações;
-- [...]
-
----
-
-## Sistema de Pontuação
-
-[...]
-
-A pontuação é calculada considerando:
-
-- [...]
-- [...]
-- [...]
-- [...]
-
----
-
-## Sistema de Vida
-
-[...]
-
-O jogador possui **[...] vidas/pontos de vida**.
-
-Ao receber dano:
-
-1. [...]
-2. [...]
-3. [...]
-
----
-
-## Animações
-
-O jogo possui diferentes animações para representar as ações dos personagens e eventos do jogo.
-
-### Apolo
-
-- Idle: [...]
-- Movimento: [...]
-- Ataque: [...]
-- Dano: [...]
-- Morte: [...]
-- [...]
-
-### Zumbis
-
-- Movimento: [...]
-- Ataque: [...]
-- Dano: [...]
-- Morte: [...]
-- [...]
-
-### Zombots
-
-- Movimento: [...]
-- Ataque: [...]
-- Dano: [...]
-- Morte: [...]
-- [...]
-
----
-
-## Cenas
-
-O jogo é dividido em diferentes cenas/estados.
+### Cenas
 
 | Cena | Descrição |
 |------|-----------|
-| **Abertura** | [...] |
-| **Menu** | [...] |
-| **Cutscene** | [...] |
-| **Gameplay** | [...] |
-| **Game Over** | [...] |
-| **Vitória** | [...] |
-| **Créditos** | [...] |
+| **Abertura** | Animação feita só com retas, círculos e elipses preenchidos. Veja [Tela de Abertura](#tela-de-abertura). |
+| **Menu** | START, CONTROLS, CREDITS, SETTINGS (🚧 _em breve_) e EXIT. |
+| **Seleção de personagem** | Escolha entre Apolo, Jannsen e Marques. |
+| **Gameplay** | Fases em side-scroll com HUD e minimapa. |
+| **Pausa** | Congela o jogo (`P`). |
+| **Vitória** | Exibida ao derrotar o Chefe Final. |
+| **Créditos** | Equipe do projeto. |
+| **Game Over** | 🚧 A implementar. |
 
 ---
 
-## Áudio
+## Implementações de Computação Gráfica
 
-O jogo possui um sistema de áudio responsável pela reprodução de músicas e efeitos sonoros.
+Todos os algoritmos abaixo foram implementados manualmente em `src/engine/`.
 
-### Música
-
-- Menu: [...]
-- Gameplay: [...]
-- Boss: [...]
-- Vitória: [...]
-- Game Over: [...]
-
-### Efeitos Sonoros
-
-- Ataque: [...]
-- Dano: [...]
-- Morte do inimigo: [...]
-- Interação: [...]
-- [...]
-
----
-
-# Implementações Técnicas de Computação Gráfica
-
-## Primitivas de Rasterização
+### Set Pixel e Primitivas de Rasterização
 
 | Algoritmo | Arquivo | Uso no Jogo |
 |-----------|---------|-------------|
-| Set Pixel | `[...]` | [...] |
-| Bresenham — Reta | `[...]` | [...] |
-| DDA | `[...]` | [...] |
-| Círculo | `[...]` | [...] |
-| Elipse | `[...]` | [...] |
+| Set Pixel | `src/engine/rendering.py` → `setPixel` | Único ponto de escrita na tela; aplica recorte retangular opcional (`clip_atual`) |
+| Reta — Bresenham | `src/engine/rendering.py` → `bresenham` | Contornos de polígonos, antena, boca, raios do scanner |
+| Circunferência — Ponto Médio | `src/engine/primitivas.py` → `circulo` | Cabeça, olhos, lua e crateras da abertura |
+| Elipse — Ponto Médio (2 regiões) | `src/engine/primitivas.py` → `elipse` | Olho, parafusos, órbita da abertura; cauda do Hadouken |
+| Fonte bitmap 5×7 | `src/engine/fonte.py` | Todo o texto do jogo, desenhado com `setPixel` |
 
----
-
-## Preenchimento de Regiões
+### Preenchimento de Regiões
 
 | Algoritmo | Arquivo | Uso no Jogo |
 |-----------|---------|-------------|
-| Flood Fill | `[...]` | [...] |
-| Boundary Fill | `[...]` | [...] |
-| Scanline Fill | `[...]` | [...] |
+| Boundary Fill (iterativo, 4-conectado) | `src/engine/fill.py` → `boundary_fill` | Preenche todas as figuras da abertura |
+| Flood Fill (iterativo, 4-conectado) | `src/engine/fill.py` → `flood_fill` | Implementado (ainda não usado nas telas atuais) |
+| Scanline | `src/engine/rendering.py` → `scanline_fill` | Prédio da abertura, pedras, espinhos, seta de transição |
+| Scanline com gradiente por vértice | `src/engine/fill.py` → `scanline_fill_gradiente` | Céu/chão da abertura, botões, barras de HUD, Hadouken |
 
----
+### Transformações Geométricas 2D
 
-## Transformações Geométricas 2D
+Matrizes homogêneas **3×3** em `src/engine/transformacoes.py`: `translacao`, `escala`, `rotacao`, `multiplica_matrizes` e `aplica_transformacao`.
 
-As transformações geométricas são implementadas utilizando **matrizes homogêneas 3×3**.
+| Transformação | Uso no Jogo |
+|---------------|-------------|
+| Translação | Movimento do Hadouken e de todas as entidades; câmera |
+| Rotação | Estrelas do Hadouken girando em sentidos opostos |
+| Escala | “Pulso” da estrela do Hadouken |
+| Composição de matrizes | `T · R · S` aplicada aos vértices do Hadouken (`src/game/entities/Hadouken.py`) |
+| Espelhamento horizontal | Sprites virados para a esquerda (`flip_x` em `draw_sprite_scaled`) |
 
-| Transformação | Arquivo | Uso no Jogo |
-|---------------|---------|-------------|
-| Translação | `[...]` | [...] |
-| Escala | `[...]` | [...] |
-| Rotação | `[...]` | [...] |
-| Reflexão | `[...]` | [...] |
-| Composição de matrizes | `[...]` | [...] |
+### Window, Viewport e Câmera
 
----
+| Recurso | Onde | Uso no Jogo |
+|---------|------|-------------|
+| Window (janela do mundo) | `calcular_camera` em `src/main.py` | Retângulo do mundo visível, que acompanha o jogador (translação) |
+| Transformação Window → Viewport | `mundo_viewport`, `transforma_poligono` em `rendering.py` | Mapeia a janela do mundo para a viewport do minimapa (com escala) |
+| Viewport | `desenhar_minimapa` em `rendering.py` | Minimapa em (600,20)–(780,160), recortado na própria viewport |
+| Zoom | 🚧 | A implementar: aproximar/afastar a window da câmera |
 
-## Window, Viewport e Câmera
-
-| Recurso | Arquivo | Uso no Jogo |
-|---------|---------|-------------|
-| Window | `[...]` | [...] |
-| Viewport | `[...]` | [...] |
-| Transformação World → Window | `[...]` | [...] |
-| Transformação Window → Viewport | `[...]` | [...] |
-| Câmera | `[...]` | [...] |
-| Zoom | `[...]` | [...] |
-
----
-
-## Clipping
+### Recorte (Clipping)
 
 | Algoritmo | Arquivo | Uso |
 |-----------|---------|-----|
-| Cohen-Sutherland | `[...]` | [...] |
-| [...] | `[...]` | [...] |
+| Cohen-Sutherland | `src/engine/clipping.py` → `cohen_sutherland`, `desenhar_linha_recortada`, `desenhar_poligono_recortado` | Raios do scanner da abertura e contornos de polígonos do minimapa |
+
+### Mapeamento de Texturas
+
+Os PNGs são carregados em **matrizes NumPy RGBA** (`src/engine/sprite.py` → `load_png_matrix`) e desenhados pixel a pixel com `setPixel` por `draw_sprite_scaled`, que faz **amostragem por vizinho mais próximo** (escala), ignora pixels transparentes e permite espelhamento. _Sprite sheets_ são fatiadas em quadros por `load_sprite_sheet_frames` (usadas no dash do Apolo e na quebra da caixa).
+
+🚧 **A implementar:** textura sobre polígonos arbitrários com coordenadas UV e interpolação por scanline (planejado para os cenários das fases, que já estão em `assets/pxos/Fases/`).
+
+### Tela de Abertura
+
+Construída em `src/ui/Intro.py` com duas camadas: uma camada **estática** (montada uma única vez e guardada em cache) e uma camada **animada** por frame.
+
+| Algoritmo | Aplicação |
+|-----------|-----------|
+| Bresenham | Antena, boca, rachadura, dentes, linha do horizonte |
+| Círculo (Ponto Médio) | Cabeça, olho robô, lua, crateras, luz da antena, satélite |
+| Elipse (Ponto Médio) | Olho zumbi, parafusos, órbita elíptica “respirando” ao redor da lua |
+| Boundary Fill | Preenchimento de todas as figuras acima |
+| Scanline com gradiente | Céu e chão |
+| Cohen-Sutherland | Raios que saem do olho robô, recortados na moldura amarela |
+
+### Animações
+
+- **Apolo:** troca de quadros no andar, soco em 3 fases (preparo → extensão → recuo), dash em 11 quadros, pose de lançamento do especial.
+- **Caixa:** 11 quadros de destruição em 0,5 s.
+- **Hadouken:** estrelas giratórias com pulso de escala e cauda de elipses.
+- **Interface:** seta de transição pulsante, luz da antena piscando, órbita elíptica na abertura.
+
+### Performance
+
+- Camadas estáticas (fundo da abertura, barras de HUD, menus) são **desenhadas uma vez e mantidas em cache**, sendo refeitas só quando algo muda.
+- Menus e telas informativas só redesenham quando há alteração.
+- O texto usa listas pré-calculadas dos pixels acesos de cada glifo.
 
 ---
 
-# Mapeamento de Texturas
+## Status do Projeto
 
-[...]
+| Requisito | Status |
+|-----------|:------:|
+| Set Pixel | ✅ |
+| Reta, círculo e elipse | ✅ |
+| Flood Fill / Boundary Fill | ✅ |
+| Preenchimento por Scanline | ✅ |
+| Gradiente de cor por vértice | ✅ |
+| Translação, escala e rotação | ✅ |
+| Animação 2D | ✅ |
+| Window + viewport (translação e escala) | ✅ (zoom da câmera 🚧) |
+| Recorte de Cohen-Sutherland | ✅ |
+| Textura de imagens (sprites) | ✅ (textura em polígonos com UV 🚧) |
+| Input por teclado | ✅ |
+| Menu interativo | ✅ |
 
-Os sprites e texturas são carregados e processados como [...]
+**Em desenvolvimento**
 
-O processo de renderização utiliza [...]
-
-### Processo
-
-1. [...]
-2. [...]
-3. [...]
-4. [...]
-
----
-
-# Gradientes
-
-[...]
-
-O projeto utiliza gradientes para [...]
-
-### Tipos de Gradiente
-
-- Gradiente linear: [...]
-- Gradiente radial: [...]
-- Gradiente por vértice: [...]
-
----
-
-# Efeitos Visuais
-
-O jogo possui diferentes efeitos visuais implementados através de técnicas de Computação Gráfica.
-
-- [...]
-- [...]
-- [...]
-- [...]
-- [...]
+- [ ] Sprites definitivos dos inimigos (zumbi, robô, zombot) e dos chefes
+- [ ] Sprites de animação de Jannsen e Marques
+- [ ] Mapas / cenários das fases (arquivos já em `assets/pxos/Fases/`)
+- [ ] Tela de Game Over
+- [ ] Zoom da câmera
+- [ ] Textura mapeada em polígonos (UV + scanline)
+- [ ] Tela de Settings
+- [ ] Pontuação, itens e áudio _(opcionais)_
 
 ---
 
-# Performance e Otimizações
+## Arquitetura do Projeto
 
-[...]
+O projeto separa os **algoritmos de Computação Gráfica** (reutilizáveis) da **lógica do jogo**:
 
-## Otimizações Implementadas
+- **`src/engine/`** — algoritmos gráficos: rasterização, preenchimento, transformações, window/viewport, recorte, sprites e fonte.
+- **`src/game/`** — lógica do jogo: entidades, movimento, colisão (AABB) e props.
+- **`src/ui/`** — telas e interface: abertura, menu, seleção de personagem, HUD.
+- **`assets/`** — sprites, texturas e imagens.
 
-- [...]
-- [...]
-- [...]
-- [...]
-- [...]
-
----
-
-# Arquitetura do Projeto
-
-O projeto foi organizado separando os algoritmos de Computação Gráfica da lógica específica do jogo.
-
-### `engine/`
-
-Contém as implementações dos algoritmos e ferramentas gráficas reutilizáveis.
-
-### `game/`
-
-Contém a lógica específica do jogo, incluindo personagens, inimigos, combate e cenas.
-
-### `assets/`
-
-Contém os recursos utilizados pelo jogo, como sprites, texturas, fontes e arquivos de áudio.
-
----
-
-# Estrutura do Projeto
+### Estrutura atual
 
 ```text
-Zombots-UECE-Edition/
-│
-├── README.md
+zombots-uece-edition-the-game/
+├── main.py                   # ponto de entrada
 ├── requirements.txt
+├── README.md
+│
+├── src/
+│   ├── main.py               # loop principal, máquina de estados, fases e câmera
+│   ├── engine/
+│   │   ├── rendering.py      # setPixel, Bresenham, scanline, window→viewport, minimapa
+│   │   ├── primitivas.py     # círculo e elipse (ponto médio)
+│   │   ├── fill.py           # flood/boundary fill, scanline com gradiente
+│   │   ├── transformacoes.py # matrizes 3×3
+│   │   ├── clipping.py       # Cohen-Sutherland
+│   │   ├── sprite.py         # PNG → matriz NumPy, desenho com escala/flip
+│   │   ├── fonte.py          # fonte bitmap 5×7
+│   │   └── background.py     # lista dos cenários das fases
+│   ├── game/
+│   │   ├── entities/         # Entity, Player, Enemy (+bosses), Box, Hadouken
+│   │   ├── movement/         # Movement, MovementPlayer, MovementEnemies
+│   │   ├── mechanics/        # Physics (colisão AABB, hitboxes)
+│   │   └── props/            # Prop, Rock, Torn
+│   └── ui/                   # Intro, Menu, Button, CharacterSelect, InfoScreen, BarraVida
 │
 ├── assets/
-│   ├── audio/
-│   │   ├── music/
-│   │   └── sfx/
-│   │
-│   ├── sprites/
-│   │   ├── player/
-│   │   ├── enemies/
-│   │   ├── boss/
-│   │   ├── environment/
-│   │   └── ...
-│   │
-│   ├── textures/
-│   ├── fonts/
-│   └── readme/
-│       ├── intro.png
-│       └── menu_cover.png
+│   ├── img/                  # imagens do README e dos créditos
+│   ├── pxos/                 # sprites e cenários em PNG
+│   └── sprites/              # classes de sprite (PixelSprite, polígonos de props)
 │
-└── src/
-    ├── main.py
-    │
-    ├── config/
-    │   ├── [...]
-    │   └── [...]
-    │
-    ├── engine/
-    │   ├── raster/
-    │   ├── geometry/
-    │   ├── fill/
-    │   ├── render/
-    │   ├── transformations/
-    │   ├── clipping/
-    │   └── [...]
-    │
-    ├── game/
-    │   ├── player/
-    │   ├── enemies/
-    │   ├── combat/
-    │   ├── scenes/
-    │   ├── audio/
-    │   ├── map/
-    │   └── [...]
-    │
-    └── loader/
-        ├── [...]
-        └── [...]
-
+└── docs/                     # códigos de referência da disciplina
 ```
-<h2 align="center">Project Contributors</h2>
+
+---
+
+## Equipe
+
+<h3 align="center">Project Contributors</h3>
 <table align="center">
   <tr>
     <td align="center">
@@ -465,7 +375,9 @@ Zombots-UECE-Edition/
     </td>
     <td align="center">
       <img src="assets/img/apolo.jpg" height="250" /><br>
-      <b>Apolo</b>
+      <b>Apolo Victor</b>
     </td>
   </tr>
 </table>
+
+<p align="center"><i>Computação Gráfica — Universidade Estadual do Ceará (UECE)</i></p>

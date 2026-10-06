@@ -180,7 +180,6 @@ def atualizar_partida(partida, tela, dt, keys):
                         "left": (-force, 0), "right": (force, 0),
                         "up": (0, -force), "down": (0, force)
                     }[player.direction]
-                    print("inimigo Atigindo")
                     enemy.apply_knockback(kx, ky)
 
         if box1.alive:
@@ -279,8 +278,8 @@ def runGame():
         "controls": InfoScreen(width, height, "CONTROLS", [
             "SETAS: MOVER",
             "X: ATACAR",
-            "Z: DESVIAR (DASH)",
-            "C: ATAQUE ESPECIAL"
+            "Z: DASH",
+            "C: ATAQUE ESPECIAL",
             "P: PAUSAR",
             "ESC: VOLTAR AO MENU",
         ]),

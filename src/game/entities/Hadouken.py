@@ -35,7 +35,7 @@ class Hadouken:
     translação + rotação + escala feitas por matriz 3x3.
     """
 
-    def __init__(self, centro_x, centro_y, direcao="right", speed=450.0, damage=40,
+    def __init__(self, centro_x, centro_y, direcao="right", speed=450.0, damage=100,
                  lifetime=2.0):
         self.size = 44
         self.width = self.size
