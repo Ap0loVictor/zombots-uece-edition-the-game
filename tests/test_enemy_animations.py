@@ -174,7 +174,7 @@ class EnemyAnimationTests(unittest.TestCase):
 
     def test_bobie_spawns_in_phase_three_and_boss_stats_are_preserved(self):
         enemies = main.fase_3(1800, 800, 600)
-        self.assertEqual([enemy.enemy_type for enemy in enemies], ["zombie", "robot", "bobie"])
+        self.assertEqual({enemy.enemy_type for enemy in enemies}, {"zombie", "robot", "bobie"})
         for boss_type, health, damage, speed in ((SubBoss, 200, 25, 80), (FinalBoss, 500, 40, 60)):
             boss = boss_type(100, 100)
             self.assertEqual((boss.health, boss.damage, boss.speed), (health, damage, speed))

@@ -12,9 +12,12 @@ class Enemy(Entity):
     Diferente do Player, o inimigo não recebe input do usuário:
     seu movimento é decidido por uma IA interna (ex: perseguir o player).
     """
+    WIDTH = 64
+    HEIGHT = 128
+    HITBOX = (17, 20, 32, 90)
     
     def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None, damage=0):
-        super().__init__(start_x, start_y, health=50, width=64, height=128, hitbox=(17, 20, 32, 90), damage=damage)
+        super().__init__(start_x, start_y, health=50, width=self.WIDTH, height=self.HEIGHT, hitbox=self.HITBOX, damage=damage)
 
         self.enemy_type = enemy_type if enemy_type is not None else random.choice(["robot", "zombie"])
         resolved_speed = speed if speed is not None else 100.0
