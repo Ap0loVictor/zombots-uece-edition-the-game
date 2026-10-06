@@ -3,8 +3,9 @@ from assets.sprites.PixelSprite import PixelSprite
 
 ROBO = (0, 0, 255)
 ZOMBIES = (0, 128, 0)
-SUBBOSS = (255, 140, 0)   # laranja
-FINALBOSS = (150, 0, 150)
+ZOMBOT = (255, 255, 0)
+SUB_BOSS = (255, 140, 0)  
+FINAL_BOSS = (150, 0, 150)
 
 BODY_POLYGON = [
     (0, 0),
@@ -43,8 +44,9 @@ class EnemySprite(Sprite):
 def get_enemy_sprite(enemy_type="zombie"):
     """Sprite de imagem para a renderização principal."""
     sprites = {
-        "robot": "assets/pxos/Jannsen_Sprites/jan_idle_32x64.png",
-        "zombie": "assets/pxos/Marques_Sprites/marques_idle_32x64.png",
+        "robot": "assets/pxos/bases/robotBase.png",
+        "zombie": "assets/pxos/bases/zombieBase.png",
+        "zombot": "assets/pxos/bases/zombotBase.png"
     }
 
     path = sprites.get(enemy_type, sprites["zombie"])
@@ -55,10 +57,12 @@ def get_enemy_polygon(enemy_type="zombie"):
     """Representação geométrica para o minimapa."""
     if enemy_type == "robot":
         return EnemySprite(ROBO)
+    if enemy_type == "zombot":
+        return EnemySprite(ZOMBOT)
     if enemy_type == "subboss":
-        return EnemySprite(SUBBOSS)
+        return EnemySprite(SUB_BOSS)
     if enemy_type == "finalboss":
-        return EnemySprite(FINALBOSS)
+        return EnemySprite(FINAL_BOSS)
 
     return EnemySprite(ZOMBIES)
 
