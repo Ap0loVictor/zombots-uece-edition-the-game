@@ -15,6 +15,7 @@ from src.ui.InfoScreen import InfoScreen
 from src.ui.Intro import Intro
 from src.ui.BarraVida import desenhar_barra_vida, desenhar_barra_especial
 from src.engine.fonte import desenhar_texto_centralizado
+from src.ui.CharacterSelect import CharacterSelect
 
 def renderizeBeings(beings, tela, camera_x=0):
     for being in beings:
@@ -45,40 +46,40 @@ def removeBeings(beings):
 def updateBeing(entities):
     pass # Acho que não vai dar pra fazer esse.
 
-def fase_0(offset_x, width, height):
+def fase_1(offset_x, width, height):
     return [
         Enemy(start_x=offset_x + 20, start_y=100, enemy_type="zombie", damage=5),
-        Enemy(start_x=offset_x + width - 20, start_y=100, enemy_type="robot", damage=5),
+        Enemy(start_x=offset_x + width - 20, start_y=100, enemy_type="zombot", damage=5),
     ]
 
-def fase_1(offset_x, width, height):
+def fase_2(offset_x, width, height):
     return [
         Enemy(start_x=offset_x + 20, start_y=150, enemy_type="zombie", damage=5),
         Enemy(start_x=offset_x + width - 20, start_y=150, enemy_type="robot", damage=5),
     ]
 
-def fase_2(offset_x, width, height):
+def fase_3(offset_x, width, height):
     return [
         Enemy(start_x=offset_x + 20, start_y=200, enemy_type="zombie", damage=5),
         Enemy(start_x=offset_x + width - 20, start_y=200, enemy_type="robot", damage=5),
         Enemy(start_x=offset_x + width // 2, start_y=100, enemy_type="zombie", damage=5),
     ]
 
-def fase_3(offset_x, width, height):
+def fase_4(offset_x, width, height):
     return [
         Enemy(start_x=offset_x + 20, start_y=250, enemy_type="zombie", damage=5),
         Enemy(start_x=offset_x + width - 20, start_y=250, enemy_type="robot", damage=5),
         Enemy(start_x=offset_x + width // 2, start_y=150, enemy_type="robot", damage=5),
     ]
 
-def fase_4(offset_x, width, height):
+def fase_5(offset_x, width, height):
     return [SubBoss(start_x=offset_x + width // 2, start_y=50)]
 
-def fase_5(offset_x, width, height):
+def fase_6(offset_x, width, height):
     return [FinalBoss(start_x=offset_x + width // 2, start_y=50)]
 
 LARGURA_FASE = 900
-FASES = [fase_0, fase_1, fase_2, fase_3, fase_4, fase_5]
+FASES = [ fase_1, fase_2, fase_3, fase_4, fase_5, fase_6]
 
 def spawnar_fase(indice_fase, width, height):
     if indice_fase < len(FASES):
@@ -86,8 +87,8 @@ def spawnar_fase(indice_fase, width, height):
         return FASES[indice_fase](offset_x, width, height)
     return []  # não há mais fases -> vitória
 
-def nova_partida(width, height):
-    player = Player(start_x=50, start_y=height // 2)
+def nova_partida(width, height, personagem="apolo"):
+    player = Player(start_x=50, start_y=height // 2, character=personagem)
     rock = Rock(200, 300)
     torn = Torn(400, 200)
     box1 = Box(600, 500)
@@ -273,6 +274,7 @@ def runGame():
 
     menu = Menu(width, height)
     intro = Intro(width, height)
+    character_select = CharacterSelect(width, height)
     telas_info = {
         "controls": InfoScreen(width, height, "CONTROLS", [
             "SETAS: MOVER",
@@ -321,13 +323,22 @@ def runGame():
             elif estado == "menu":
                 acao = menu.handle_event(evento)
                 if acao == "start":
-                    partida = nova_partida(width, height)
-                    estado = "playing"
+                    estado = "character_select"
+                    character_select.open()
                 elif acao == "exit":
                     running = False
                 elif acao in telas_info:
                     estado = acao
                     telas_info[estado].open()
+
+            elif estado == "character_select":
+                resultado = character_select.handle_event(evento)
+                if resultado == "voltar":
+                    estado = "menu"
+                    menu.open()
+                elif resultado is not None:
+                    partida = nova_partida(width, height, personagem=resultado)
+                    estado = "playing"
 
             elif estado == "playing":
                 if evento.type == pygame.KEYDOWN and evento.key == pygame.K_x:
@@ -361,6 +372,8 @@ def runGame():
             intro.draw(tela, dt)
         elif estado == "menu":
             menu.draw(tela)
+        elif estado == "character_select":
+            character_select.draw(tela)
         elif estado == "playing":
             keys = pygame.key.get_pressed()
             resultado = atualizar_partida(partida, tela, dt, keys)

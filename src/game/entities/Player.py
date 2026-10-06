@@ -4,12 +4,18 @@ from src.game.movement.MovementPlayer import MovementPlayer
 from assets.sprites.entities.PlayerSprite import PlayerSprite
 from assets.sprites.PixelSprite import PixelSprite, load_sprite_sheet_frames
 
+PERSONAGENS = {
+    "apolo":   {"pasta": "assets/pxos/Apolo_Sprites/",   "idle": "apolo_idle_32x64.png"},
+    "jannsen": {"pasta": "assets/pxos/Jannsen_Sprites/",  "idle": "jan_idle_32x64.png"},
+    "marques": {"pasta": "assets/pxos/Marques_Sprites/",  "idle": "marques_idle_32x64.png"},
+}
+
 class Player(Entity):
     """
     Entidade do Jogador.
     """
 
-    def __init__(self, start_x, start_y, speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0, attack_duration=0.2):
+    def __init__(self, start_x, start_y, character="apolo", speed=250.0, direction="down", movement=None, sprite=None, invincibility_duration=2.0, attack_duration=0.2):
         super().__init__(start_x, start_y, health=100, width=64, height=128, hitbox=(17, 20, 32, 90), damage=25)
         self.invincibility_duration = invincibility_duration
         self.invincibility_remaining = 0.0
@@ -48,6 +54,27 @@ class Player(Entity):
         self.special_timer = 0.0
         self.cast_duration = 0.3
         self.cast_timer = 0.0
+
+        self.character = character
+        dados = PERSONAGENS.get(character, PERSONAGENS["apolo"])
+        base = dados["pasta"]
+
+        if character == "apolo":
+            self.sprite_idle = PixelSprite(base + "apolo_idle_32x64.png")
+            self.sprite_windup = PixelSprite(base + "apolo_punch_windup_32x64.png")
+            self.sprite_extended = PixelSprite(base + "apolo_punch_extended_32x64.png")
+            self.sprite_recoil = PixelSprite(base + "apolo_punch_recoil_32x64.png")
+            self.sprite_walk_right = PixelSprite(base + "apolo_walk_right_32x64.png")
+            self.dash_frames = load_sprite_sheet_frames(base + "apolo_dash.png", frame_count=11)
+        else:
+            # Jannsen/Marques só têm o idle -> mesma imagem usada em todos os estados
+            idle = PixelSprite(base + dados["idle"])
+            self.sprite_idle = idle
+            self.sprite_windup = idle
+            self.sprite_extended = idle
+            self.sprite_recoil = idle
+            self.sprite_walk_right = idle
+            self.dash_frames = [idle]
 
     def start_invincibility(self):
         if not self.alive or self.is_invincible or self.invincibility_duration <= 0:
