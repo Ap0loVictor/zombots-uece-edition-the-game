@@ -185,14 +185,24 @@ Os sprites são carregados das pastas atualizadas em `assets/pxos/`.
 
 ### Progressão
 
-| Área | Inimigos |
-|-----:|----------|
-| 1 | Zumbi + Zombot |
-| 2 | Zumbi + Robô |
-| 3 | Zumbi + Robô + Bobie-Zombie |
-| 4 | Zumbi + Robô + Robô |
-| 5 | **Sub-Chefe** |
-| 6 | **Chefe Final** |
+| Área | Inimigos | Quantidade |
+|-----:|----------|-----------:|
+| 1 | Zumbi + Zombot | 2–5 |
+| 2 | Zumbi + Robô | 2–5 |
+| 3 | Zumbi + Robô + Bobie-Zombie | 3–5 |
+| 4 | Zumbi + Robô (maior presença de robôs) | 3–5 |
+| 5 | **Sub-Chefe** | 1 |
+| 6 | **Chefe Final** | 1 |
+
+Nas áreas 1–4, a quantidade é sorteada ao entrar na fase. Os inimigos surgem
+na borda direita (`offset_x + width - Enemy.WIDTH`), com Y aleatório entre
+o topo e a última posição que mantém o sprite inteiro na tela. As hitboxes
+nascem separadas para evitar travamentos de movimento. A quantidade também
+respeita o espaço vertical disponível.
+
+Os limites ficam em `MIN_INIMIGOS_REGULARES` e `MAX_INIMIGOS_REGULARES`, em
+`src/main.py`; o mínimo de cada fase preserva sua composição de inimigos.
+Sub-chefe e chefe final mantêm suas posições e quantidades fixas.
 
 ### Cenas
 

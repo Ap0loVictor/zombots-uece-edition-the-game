@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 from src.game.entities.Player import Player
 from src.game.props.Rock import Rock
 from src.game.props.Torn import Torn
@@ -46,31 +47,44 @@ def removeBeings(beings):
 def updateBeing(entities):
     pass # Acho que não vai dar pra fazer esse.
 
-def fase_1(offset_x, width, height):
+MIN_INIMIGOS_REGULARES = 2
+MAX_INIMIGOS_REGULARES = 5
+
+
+def gerar_inimigos_regulares(offset_x, width, height, tipos):
+    """Sorteia quantidade e posições na borda direita, sem sobrepor hitboxes."""
+    max_y = max(0, height - Enemy.HEIGHT)
+    espacamento = Enemy.HITBOX[3]
+    capacidade = 1 + max_y // espacamento
+    maximo = min(MAX_INIMIGOS_REGULARES, capacidade)
+    minimo = min(maximo, max(MIN_INIMIGOS_REGULARES, len(tipos)))
+    quantidade = random.randint(minimo, maximo)
+    spawn_x = offset_x + max(0, width - Enemy.WIDTH)
+
+    # Distribui o espaço livre aleatoriamente entre os inimigos. Não há faixas
+    # fixas de Y; a distância mínima evita travamento por colisão no nascimento.
+    espaco_livre = max_y - (quantidade - 1) * espacamento
+    offsets = sorted(random.randint(0, espaco_livre) for _ in range(quantidade))
+    posicoes_y = [offset + i * espacamento for i, offset in enumerate(offsets)]
+    random.shuffle(posicoes_y)
+
     return [
-        Enemy(start_x=offset_x + 20, start_y=100, enemy_type="zombie", damage=5),
-        Enemy(start_x=offset_x + width - 20, start_y=100, enemy_type="zombot", damage=5),
+        Enemy(start_x=spawn_x, start_y=y, enemy_type=tipos[i % len(tipos)], damage=5)
+        for i, y in enumerate(posicoes_y)
     ]
+
+
+def fase_1(offset_x, width, height):
+    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "zombot"))
 
 def fase_2(offset_x, width, height):
-    return [
-        Enemy(start_x=offset_x + 20, start_y=150, enemy_type="zombie", damage=5),
-        Enemy(start_x=offset_x + width - 20, start_y=150, enemy_type="robot", damage=5),
-    ]
+    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "robot"))
 
 def fase_3(offset_x, width, height):
-    return [
-        Enemy(start_x=offset_x + 20, start_y=200, enemy_type="zombie", damage=5),
-        Enemy(start_x=offset_x + width - 20, start_y=200, enemy_type="robot", damage=5),
-        Enemy(start_x=offset_x + width // 2, start_y=100, enemy_type="bobie", damage=5),
-    ]
+    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "robot", "bobie"))
 
 def fase_4(offset_x, width, height):
-    return [
-        Enemy(start_x=offset_x + 20, start_y=250, enemy_type="zombie", damage=5),
-        Enemy(start_x=offset_x + width - 20, start_y=250, enemy_type="robot", damage=5),
-        Enemy(start_x=offset_x + width // 2, start_y=150, enemy_type="robot", damage=5),
-    ]
+    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "robot", "robot"))
 
 def fase_5(offset_x, width, height):
     return [SubBoss(start_x=offset_x + width // 2, start_y=50)]
