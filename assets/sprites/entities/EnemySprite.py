@@ -47,31 +47,49 @@ def get_enemy_animations(enemy_type="zombie"):
     return _CACHE_ANIMACOES[chave]
 
 
-def get_enemy_sprite(enemy_type="zombie"):
-    """Primeiro frame idle, mantendo a interface usada por outros chamadores."""
-    path, count = _animation_paths(enemy_type)["idle"]
-    return load_sprite_sheet_frames("assets/pxos/" + path, frame_count=count)[0]
+# Vilões: cada folha tem frames de larguras iguais; "altura" é a altura em tela do frame de andar.
+VILLAIN_ANIMATIONS = {
+    "professor": {
+        "altura": 160,
+        "sheets": {
+            "walk": ("Vilões/Professor/andar.png", 9),
+            "punch": ("Vilões/Professor/bater.png", 7),
+            "kick": ("Vilões/Professor/chutar.png", 7),
+            "special": ("Vilões/Professor/supergolpe.png", 5),
+            "fall": ("Vilões/Professor/cair_derrotado.png", 7),
+        },
+    },
+    "mrblack": {
+        "altura": 150,
+        "sheets": {
+            "walk": ("Vilões/MrBlack/andar.png", 8),
+            "punch": ("Vilões/MrBlack/bater.png", 7),
+            "kick": ("Vilões/MrBlack/chutar.png", 7),
+            "special": ("Vilões/MrBlack/dash_dano.png", 6),
+            "fall": ("Vilões/MrBlack/cair_derrotado.png", 7),
+        },
+    },
+}
 
+_CACHE_VILOES = {}
 
-def get_enemy_polygon(enemy_type="zombie"):
-    """Representação geométrica para o minimapa."""
-    if enemy_type == "robot":
-        return EnemySprite(ROBO)
-    if enemy_type == "zombot":
-        return EnemySprite(ZOMBOT)
-    if enemy_type == "subboss":
-        return EnemySprite(SUB_BOSS)
-    if enemy_type == "finalboss":
-        return EnemySprite(FINAL_BOSS)
-
-    return EnemySprite(ZOMBIES)
+def get_villain_animations(kind):
+    """Retorna {"scale": fator único do personagem, "frames": {estado: [frames]}}."""
+    if kind not in _CACHE_VILOES:
+        dados = VILLAIN_ANIMATIONS[kind]
+        frames = {
+            estado: load_sprite_sheet_frames("assets/pxos/" + path, frame_count=count)
+            for estado, (path, count) in dados["sheets"].items()
+        }
+        _CACHE_VILOES[kind] = {"scale": dados["altura"] / frames["walk"][0].height, "frames": frames}
+    return _CACHE_VILOES[kind]
 
 
 ROBO = (0, 0, 255)
 ZOMBIES = (0, 128, 0)
 ZOMBOT = (255, 255, 0)
-SUB_BOSS = (255, 140, 0)  
-FINAL_BOSS = (150, 0, 150)
+PROFESSOR = (190, 140, 190)
+MR_BLACK = (90, 30, 110)
 
 BODY_POLYGON = [
     (0, 0),
@@ -119,9 +137,9 @@ def get_enemy_polygon(enemy_type="zombie"):
         return EnemySprite(ROBO)
     if enemy_type == "zombot":
         return EnemySprite(ZOMBOT)
-    if enemy_type == "subboss":
-        return EnemySprite(SUB_BOSS)
-    if enemy_type == "finalboss":
-        return EnemySprite(FINAL_BOSS)
+    if enemy_type == "professor":
+        return EnemySprite(PROFESSOR)
+    if enemy_type == "mrblack":
+        return EnemySprite(MR_BLACK)
 
     return EnemySprite(ZOMBIES)
