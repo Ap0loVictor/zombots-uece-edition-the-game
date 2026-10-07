@@ -1,4 +1,5 @@
 import pygame
+from src.engine.audio import audio
 from src.ui.Button import Button
 from src.engine.fonte import desenhar_texto_centralizado
 from src.engine.rendering import scanline_fill
@@ -51,6 +52,7 @@ class Menu:
         if evento.type != pygame.KEYDOWN:
             return None
 
+        previous_index = self.index
         if evento.key == pygame.K_UP:
             self.index = (self.index - 1) % len(self.buttons)
             self._update_selection()
@@ -60,6 +62,8 @@ class Menu:
         elif evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
             return self.buttons[self.index].action
 
+        if self.index != previous_index:
+            audio.play_sfx("menu_navigation")
         return None
 
     def draw(self, tela):

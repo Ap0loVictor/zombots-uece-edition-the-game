@@ -1,3 +1,4 @@
+from src.engine.audio import audio
 from src.game.entities.Entity import Entity
 from src.game.movement.MovementEnemies import MovementEnemies
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
@@ -73,6 +74,16 @@ class Enemy(Entity):
         self.knockback_dx = 0.0
         self.knockback_dy = 0.0
         self.knockback_timer = 0.0
+
+    def receive_damage(self, damage):
+        if not self.alive:
+            return
+        super().receive_damage(damage)
+        if not self.alive:
+            self._play_death_sound()
+
+    def _play_death_sound(self):
+        audio.play_sfx("enemy_death")
 
     @property
     def is_attacking(self):
@@ -166,5 +177,4 @@ class Enemy(Entity):
     @property
     def speed(self):
         return self.movement.speed
-
 

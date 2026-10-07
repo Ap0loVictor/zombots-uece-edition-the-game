@@ -1,3 +1,6 @@
+import random
+
+from src.engine.audio import audio
 from src.game.entities.Entity import Entity
 from src.game.entities.Hadouken import Hadouken
 from src.game.movement.MovementPlayer import MovementPlayer
@@ -89,8 +92,11 @@ class Player(Entity):
 
         super().receive_damage(damage)
         if self.alive:
+            audio.play_sfx(random.choice(("player_damage_1", "player_damage_2")))
             print(f"Vida do jogador: {self.health}")
             self.start_invincibility()
+        else:
+            audio.play_sfx("player_death")
         return True
 
 
@@ -275,6 +281,7 @@ class Player(Entity):
         self.attack_timer = self.attack_duration
         self.attack_cooldown_timer = self.attack_cooldown_duration  
         self.has_hit = False
+        audio.play_sfx("player_punch")
 
     @property
     def is_dashing(self):
@@ -300,6 +307,7 @@ class Player(Entity):
 
         self.special_timer = 0.0
         self.cast_timer = self.cast_duration
+        audio.play_sfx("hadouken")
 
         fx, fy = self.get_facing_point(offset=34)  # nasce na frente do jogador
         return Hadouken(fx, fy, self.direction)

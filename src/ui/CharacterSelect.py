@@ -1,4 +1,5 @@
 import pygame
+from src.engine.audio import audio
 from assets.sprites.PixelSprite import PixelSprite
 from src.engine.sprite import draw_sprite_scaled
 from src.engine.fonte import desenhar_texto_centralizado
@@ -29,6 +30,7 @@ class CharacterSelect:
         if evento.type != pygame.KEYDOWN:
             return None
 
+        previous_index = self.index
         if evento.key == pygame.K_LEFT:
             self.index = (self.index - 1) % len(PERSONAGENS)
             self.needs_redraw = True
@@ -40,6 +42,8 @@ class CharacterSelect:
         elif evento.key == pygame.K_ESCAPE:
             return "voltar"
 
+        if self.index != previous_index:
+            audio.play_sfx("menu_navigation")
         return None
 
     def draw(self, tela):

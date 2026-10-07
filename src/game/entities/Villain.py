@@ -1,6 +1,7 @@
 import random
 
 from assets.sprites.entities.EnemySprite import get_villain_animations
+from src.engine.audio import audio
 from src.game.entities.Enemy import Enemy
 
 # Por golpe:
@@ -92,6 +93,9 @@ class Villain(Enemy):
             self.attack_kind = None
             self.death_elapsed = 0.0
 
+    def _play_death_sound(self):
+        audio.play_sfx(f"{self.enemy_type}_death")
+
     def apply_knockback(self, dx, dy, duration=0.15):
         if self.alive and not self.is_attacking:  # durante o golpe ele não é empurrado
             super().apply_knockback(dx * self.KNOCKBACK_FACTOR, dy * self.KNOCKBACK_FACTOR, duration)
@@ -116,6 +120,8 @@ class Villain(Enemy):
             self.facing_left = dx < 0
         if kind == "special":
             self.special_cooldown_timer = random.uniform(*self.stats["special_cooldown"])
+        effect = "special" if kind == "special" else "attack"
+        audio.play_sfx(f"{self.enemy_type}_{effect}")
         self._atualizar_sprite(0.0, moving=False)
 
     def try_attack(self, player):
