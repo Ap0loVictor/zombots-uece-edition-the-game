@@ -159,6 +159,18 @@ def mundo_viewport(ponto, janela, viewport):
 def transforma_poligono(pontos, janela, viewport):
     return [mundo_viewport(p, janela, viewport) for p in pontos]
 
+def janela_com_zoom(centro, zoom, largura_base, altura_base, limites):
+    """
+    Janela do mundo centrada em `centro`, com tamanho (largura_base/zoom, altura_base/zoom).
+    Zoom maior = janela menor = a mesma viewport mostra menos mundo, ampliado.
+    A janela é deslocada (translação) para não sair de `limites` = (xmin, ymin, xmax, ymax).
+    """
+    w, h = largura_base / zoom, altura_base / zoom
+    lx0, ly0, lx1, ly1 = limites
+    x0 = max(lx0, min(centro[0] - w / 2, lx1 - w))
+    y0 = max(ly0, min(centro[1] - h / 2, ly1 - h))
+    return (x0, y0, x0 + w, y0 + h)
+
 def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor_borda, fundo=None):
     global clip_atual
     from src.engine.clipping import desenhar_poligono_recortado
@@ -174,9 +186,9 @@ def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor
         pixels[Vxmin:Vxmax + 1, Vymin:Vymax + 1] = cor_fundo
         del pixels
     else:
-        textura, u0, u1 = fundo
+        textura, u0, u1, v0, v1 = fundo
         quad = [(Vxmin, Vymin), (Vxmax, Vymin), (Vxmax, Vymax + 1), (Vxmin, Vymax + 1)]
-        scanline_texture(superficie, quad, [(u0, 0), (u1, 0), (u1, 1), (u0, 1)], textura)
+        scanline_texture(superficie, quad, [(u0, v0), (u1, v0), (u1, v1), (u0, v1)], textura)
 
         pixels = pygame.surfarray.pixels3d(superficie)
         area = pixels[Vxmin:Vxmax + 1, Vymin:Vymax + 1]
@@ -184,6 +196,10 @@ def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor
         del area, pixels
 
     for being in beings:
+        # fora da janela do mundo: nem entra no pipeline (importante com zoom alto)
+        bw, bh = getattr(being, "width", 0), getattr(being, "height", 0)
+        if being.x + bw < Wxmin or being.x > Wxmax or being.y + bh < Wymin or being.y > Wymax:
+            continue
         if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
             from src.engine.sprite import draw_sprite_scaled  # import local evita ciclo com rendering.py
             vx, vy = mundo_viewport((being.x, being.y), janela_mundo, viewport)

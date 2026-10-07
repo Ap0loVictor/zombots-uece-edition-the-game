@@ -8,14 +8,14 @@ from src.game.entities.Enemy import Enemy,SubBoss, FinalBoss
 from src.game.entities.Box import Box
 
 from src.engine.sprite import draw_sprite_scaled
-from src.engine.rendering import desenhar_poligono, scanline_fill, desenhar_minimapa
+from src.engine.rendering import desenhar_poligono, scanline_fill, desenhar_minimapa, janela_com_zoom
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
 from src.ui.Menu import Menu
 from src.ui.InfoScreen import InfoScreen
 from src.ui.Intro import Intro
 from src.ui.BarraVida import desenhar_barra_vida, desenhar_barra_especial
-from src.engine.fonte import desenhar_texto_centralizado
+from src.engine.fonte import desenhar_texto_centralizado, desenhar_texto
 from src.ui.CharacterSelect import CharacterSelect
 from src.engine.background import Cenario, ZONAS_JOGAVEIS, escurecer
 from assets.sprites.entities.EnemySprite import get_enemy_animations, ENEMY_ANIMATIONS
@@ -164,7 +164,8 @@ def nova_partida(width, height, personagem="apolo"):
         "zonas": zonas,
         "limite_esquerdo": 0,  # avança e nunca mais recua
         "largura_mundo": sum(larguras),
-        "viewport_minimapa": (600, 20, 780, 160),
+        "viewport_minimapa": (600, 20, 780, 155),  # 180x135 = mesma proporção 4:3 da tela
+        "zoom": 1.0,
         "vitoria": False,
         "aguardando_transicao": False,
         "tempo_transicao": 0.0,
@@ -172,6 +173,15 @@ def nova_partida(width, height, personagem="apolo"):
         "titulo": {"texto": "FASE 1", "tempo": 0.0},
         "onda_extra": ONDAS_EXTRAS.get(fase_atual),
     }
+
+ZOOM_MIN, ZOOM_MAX, ZOOM_PASSO = 1.0, 4.0, 1.25
+
+def ajustar_zoom(partida, fator=None, reset=False):
+    """Zoom do minimapa (a tela principal não é afetada)."""
+    if reset:
+        partida["zoom"] = 1.0
+    else:
+        partida["zoom"] = max(ZOOM_MIN, min(ZOOM_MAX, partida["zoom"] * fator))
 
 def desenhar_cena(partida, tela):
     fase = partida["fase_atual"]
@@ -187,22 +197,37 @@ def desenhar_cena(partida, tela):
     renderizeBeings(seres, tela=tela, camera_x=camera_x)
     return janela, camera_x
 
-def desenhar_hud(partida, tela, janela_camera):
+def desenhar_hud(partida, tela, janela_camera=None):
     player = partida["player"]
     desenhar_barra_vida(tela, 20, 20, player.health, player.max_health)
     desenhar_barra_especial(tela, 20, 68, player.special_progress, player.special_ready)
 
     fase = partida["fase_atual"]
+    zoom = partida["zoom"]
+    largura, altura = partida["width"], partida["height"]
+    x_ini = partida["offsets"][fase]
+    x_fim = x_ini + partida["larguras"][fase]
+
+    # Window do minimapa: centrada no jogador, tamanho = tela / zoom (escala),
+    # deslocada junto com ele (translação) e mantida dentro da fase atual.
+    centro = (player.x + player.width / 2, player.y + player.height / 2)
+    janela_mini = janela_com_zoom(centro, zoom, largura, altura, (x_ini, 0, x_fim, altura))
+
     fundo = None
     if fase < len(partida["cenarios"]):
         cen = partida["cenarios"][fase]
-        x_ini = partida["offsets"][fase]
-        u0 = (janela_camera[0] - x_ini) / cen.largura
-        u1 = (janela_camera[2] - x_ini) / cen.largura
-        fundo = (cen.matriz.transpose(1, 0, 2), u0, u1)  # surfarray (largura, altura) -> (altura, largura)
+        u0 = (janela_mini[0] - x_ini) / cen.largura
+        u1 = (janela_mini[2] - x_ini) / cen.largura
+        v0 = janela_mini[1] / altura
+        v1 = janela_mini[3] / altura
+        fundo = (cen.matriz.transpose(1, 0, 2), u0, u1, v0, v1)  # surfarray (largura, altura) -> (altura, largura)
 
-    desenhar_minimapa(tela, partida["things"], janela_camera, partida["viewport_minimapa"],
+    desenhar_minimapa(tela, partida["things"], janela_mini, partida["viewport_minimapa"],
                       cor_fundo=(10, 10, 20), cor_borda=(255, 255, 255), fundo=fundo)
+
+    vx0, vy0, vx1, vy1 = partida["viewport_minimapa"]
+    desenhar_texto_centralizado(tela, f"ZOOM {zoom:.1f}X", (vx0 + vx1) // 2, vy1 + 14,
+                                (235, 235, 245), escala=2)
 
 def desenhar_titulo(partida, tela, dt):
     t = partida["titulo"]
@@ -419,6 +444,8 @@ def runGame():
             "X: ATACAR",
             "Z: DASH",
             "C: ATAQUE ESPECIAL",
+            "+ / - OU RODA: ZOOM DO MINIMAPA",
+            "0: RESETAR ZOOM",
             "P: PAUSAR",
             "ESC: VOLTAR AO MENU",
         ]),
@@ -487,6 +514,14 @@ def runGame():
                         partida["projeteis"].append(projetil)
                 elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_z:
                     partida["player"].start_dash()
+                elif evento.type == pygame.KEYDOWN and evento.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
+                    ajustar_zoom(partida, ZOOM_PASSO)
+                elif evento.type == pygame.KEYDOWN and evento.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
+                    ajustar_zoom(partida, 1 / ZOOM_PASSO)
+                elif evento.type == pygame.KEYDOWN and evento.key in (pygame.K_0, pygame.K_KP0):
+                    ajustar_zoom(partida, reset=True)
+                elif evento.type == pygame.MOUSEWHEEL and evento.y != 0:
+                    ajustar_zoom(partida, ZOOM_PASSO if evento.y > 0 else 1 / ZOOM_PASSO)
                 elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
                     estado = "menu"
                     menu.open()
