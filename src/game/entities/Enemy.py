@@ -4,6 +4,28 @@ from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 from assets.sprites.entities.EnemySprite import get_enemy_animations, get_enemy_polygon
 import random
 
+ENEMY_STATS = {
+"bobie": {
+    "health": 50,
+    "speed": 100.0,
+    "damage": 5,
+},
+"robot": {
+    "health": 75,
+    "speed": 100.0,
+    "damage": 5,
+},
+"zombie": {
+    "health": 50,
+    "speed": 140.0,
+    "damage": 5,
+},
+"zombot": {
+    "health": 75,
+    "speed": 140.0,
+    "damage": 10,
+},
+}
 
 class Enemy(Entity):
     """
@@ -16,11 +38,17 @@ class Enemy(Entity):
     HEIGHT = 128
     HITBOX = (17, 20, 32, 90)
     
-    def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None, damage=0):
-        super().__init__(start_x, start_y, health=50, width=self.WIDTH, height=self.HEIGHT, hitbox=self.HITBOX, damage=damage)
+    def __init__(self, start_x, start_y, enemy_type=None, speed=None, sprite=None, movement=None, damage=None):
 
         self.enemy_type = enemy_type if enemy_type is not None else random.choice(["robot", "zombie"])
-        resolved_speed = speed if speed is not None else 100.0
+
+        stats = ENEMY_STATS.get(self.enemy_type, ENEMY_STATS["bobie"])
+
+        resolved_health = stats["health"]
+        resolved_speed = speed if speed is not None else stats["speed"]
+        resolved_damage = damage if damage is not None else stats["damage"]
+
+        super().__init__(start_x,start_y,health=resolved_health,width=self.WIDTH,height=self.HEIGHT,hitbox=self.HITBOX,damage=resolved_damage)
 
         self.movement = movement if movement is not None else MovementEnemies(speed=resolved_speed)
         if sprite is None:

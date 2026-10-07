@@ -1,6 +1,6 @@
 # Zombots — UECE Edition
 
-![intro](assets/img/zombots_cg.png)
+![intro](assets/img/zombots_opening.jpeg)
 
 > **Vídeo da execução:** [ADICIONAR LINK DO VÍDEO AQUI]
 
@@ -442,45 +442,6 @@ O Pygame é utilizado como infraestrutura para:
 * exibição dos dados gráficos.
 
 As primitivas de desenho, preenchimentos, transformações, clipping e mapeamento de texturas são implementados pelo próprio projeto.
-
----
-
-## Status do Projeto
-
-### Requisitos da disciplina
-
-| Requisito                      | Status |
-| ------------------------------ | :----: |
-| Set Pixel                      |   OK   |
-| Reta                           |   OK   |
-| Circunferência                 |   OK   |
-| Elipse                         |   OK   |
-| Flood Fill / Boundary Fill     |   OK   |
-| Scanline                       |   OK   |
-| Gradiente de cores por vértice |   OK   |
-| Translação                     |   OK   |
-| Escala                         |   OK   |
-| Rotação                        |   OK   |
-| Animação 2D                    |   OK   |
-| Window                         |   OK   |
-| Viewport                       |   OK   |
-| Translação da Window           |   OK   |
-| Escala / Zoom da Window        |   OK   |
-| Cohen-Sutherland               |   OK   |
-| Mapeamento de textura          |   OK   |
-| Input                          |   OK   |
-| Menu interativo                |   OK   |
-
-### Em desenvolvimento
-
-As funcionalidades abaixo não são necessárias para o cumprimento dos requisitos principais da disciplina, mas podem receber melhorias antes da versão final:
-
-* Sprites definitivos dos chefes;
-* Animações adicionais de Jannsen e Marques;
-* Tela de Game Over;
-* Tela de Settings;
-* Sistema de pontuação e itens;
-* Sistema de áudio.
 
 ---
 
