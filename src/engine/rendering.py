@@ -1,3 +1,6 @@
+import numpy as np
+import pygame
+
 clip_atual = None  # (xmin, ymin, xmax, ymax) ou None
 
 def setPixel(superficie, x, y, cor):
@@ -102,6 +105,47 @@ def scanline_fill(superficie, pontos, cor_preenchimento):
                 for x in range(x_inicio, x_fim + 1):
                     setPixel(superficie, x, y, cor_preenchimento)
 
+def scanline_texture(superficie, pontos, uvs, textura):
+    """textura: matriz (altura, largura, 3|4); uvs em [0, 1], um por vértice."""
+    th, tw = textura.shape[:2]
+    largura, altura = superficie.get_size()
+    n = len(pontos)
+    y_min = int(min(p[1] for p in pontos))
+    y_max = int(max(p[1] for p in pontos))
+
+    pixels = pygame.surfarray.pixels3d(superficie)
+    for y in range(max(0, y_min), min(altura, y_max)):
+        intersecoes = []
+        for i in range(n):
+            x0, y0 = pontos[i]
+            x1, y1 = pontos[(i + 1) % n]
+            u0, v0 = uvs[i]
+            u1, v1 = uvs[(i + 1) % n]
+            if y0 == y1:
+                continue
+            if y0 > y1:
+                x0, y0, x1, y1 = x1, y1, x0, y0
+                u0, v0, u1, v1 = u1, v1, u0, v0
+            if y < y0 or y >= y1:
+                continue
+            t = (y - y0) / (y1 - y0)
+            intersecoes.append((x0 + t * (x1 - x0), u0 + t * (u1 - u0), v0 + t * (v1 - v0)))
+
+        intersecoes.sort(key=lambda item: item[0])
+        for i in range(0, len(intersecoes) - 1, 2):
+            x_ini, u_ini, v_ini = intersecoes[i]
+            x_fim, u_fim, v_fim = intersecoes[i + 1]
+            if x_fim == x_ini:
+                continue
+            xs = np.arange(max(0, int(x_ini)), min(largura, int(x_fim) + 1))
+            if xs.size == 0:
+                continue
+            t = (xs - x_ini) / (x_fim - x_ini)
+            tx = np.clip(((u_ini + t * (u_fim - u_ini)) * (tw - 1)).astype(int), 0, tw - 1)
+            ty = np.clip(((v_ini + t * (v_fim - v_ini)) * (th - 1)).astype(int), 0, th - 1)
+            pixels[xs, y] = textura[ty, tx, :3]
+    del pixels
+
 def mundo_viewport(ponto, janela, viewport):
     Wxmin, Wymin, Wxmax, Wymax = janela
     Vxmin, Vymin, Vxmax, Vymax = viewport
@@ -115,10 +159,9 @@ def mundo_viewport(ponto, janela, viewport):
 def transforma_poligono(pontos, janela, viewport):
     return [mundo_viewport(p, janela, viewport) for p in pontos]
 
-def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor_borda):
+def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor_borda, fundo=None):
     global clip_atual
     from src.engine.clipping import desenhar_poligono_recortado
-
 
     Vxmin, Vymin, Vxmax, Vymax = viewport
     clip_atual = viewport
@@ -126,9 +169,19 @@ def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor
     Wxmin, Wymin, Wxmax, Wymax = janela_mundo
     sy = (Vymax - Vymin) / (Wymax - Wymin)
 
-    for y in range(Vymin, Vymax + 1):
-        for x in range(Vxmin, Vxmax + 1):
-            setPixel(superficie, x, y, cor_fundo)
+    if fundo is None:
+        pixels = pygame.surfarray.pixels3d(superficie)
+        pixels[Vxmin:Vxmax + 1, Vymin:Vymax + 1] = cor_fundo
+        del pixels
+    else:
+        textura, u0, u1 = fundo
+        quad = [(Vxmin, Vymin), (Vxmax, Vymin), (Vxmax, Vymax + 1), (Vxmin, Vymax + 1)]
+        scanline_texture(superficie, quad, [(u0, 0), (u1, 0), (u1, 1), (u0, 1)], textura)
+
+        pixels = pygame.surfarray.pixels3d(superficie)
+        area = pixels[Vxmin:Vxmax + 1, Vymin:Vymax + 1]
+        np.multiply(area, 0.6, out=area, casting="unsafe")  # escurece o cenário para os bonecos aparecerem
+        del area, pixels
 
     for being in beings:
         if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):

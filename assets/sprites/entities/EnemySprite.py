@@ -34,11 +34,38 @@ def _animation_paths(enemy_type):
     return ENEMY_ANIMATIONS.get(enemy_type, ENEMY_ANIMATIONS["zombie"])
 
 
+_CACHE_ANIMACOES = {}
+
 def get_enemy_animations(enemy_type="zombie"):
-    return {
-        state: load_sprite_sheet_frames("assets/pxos/" + path, frame_count=count)
-        for state, (path, count) in _animation_paths(enemy_type).items()
-    }
+    caminhos = _animation_paths(enemy_type)
+    chave = id(caminhos)  # os dicts de ENEMY_ANIMATIONS são constantes
+    if chave not in _CACHE_ANIMACOES:
+        _CACHE_ANIMACOES[chave] = {
+            state: load_sprite_sheet_frames("assets/pxos/" + path, frame_count=count)
+            for state, (path, count) in caminhos.items()
+        }
+    return _CACHE_ANIMACOES[chave]
+
+
+def get_enemy_sprite(enemy_type="zombie"):
+    """Primeiro frame idle, mantendo a interface usada por outros chamadores."""
+    path, count = _animation_paths(enemy_type)["idle"]
+    return load_sprite_sheet_frames("assets/pxos/" + path, frame_count=count)[0]
+
+
+def get_enemy_polygon(enemy_type="zombie"):
+    """Representação geométrica para o minimapa."""
+    if enemy_type == "robot":
+        return EnemySprite(ROBO)
+    if enemy_type == "zombot":
+        return EnemySprite(ZOMBOT)
+    if enemy_type == "subboss":
+        return EnemySprite(SUB_BOSS)
+    if enemy_type == "finalboss":
+        return EnemySprite(FINAL_BOSS)
+
+    return EnemySprite(ZOMBIES)
+
 
 ROBO = (0, 0, 255)
 ZOMBIES = (0, 128, 0)
