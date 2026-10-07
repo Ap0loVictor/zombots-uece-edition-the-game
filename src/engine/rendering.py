@@ -17,6 +17,27 @@ def setPixel(superficie, x, y, cor):
         
     superficie.set_at((x, y), cor)
 
+def copiar_superficie(destino, origem, pos_x=0, pos_y=0):
+    matriz = pygame.surfarray.array3d(origem)
+
+    largura, altura = origem.get_size()
+    destino_largura, destino_altura = destino.get_size()
+
+    for y in range(altura):
+        dy = pos_y + y
+
+        if dy < 0 or dy >= destino_altura:
+            continue
+
+        for x in range(largura):
+            dx = pos_x + x
+
+            if dx < 0 or dx >= destino_largura:
+                continue
+
+            cor = matriz[x, y]
+            setPixel(destino, dx, dy, cor)
+
 def bresenham(superficie, x0, y0, x1, y1, cor):
     x0, y0 = int(x0), int(y0)
     x1, y1 = int(x1), int(y1)

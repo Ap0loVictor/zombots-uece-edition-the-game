@@ -2,7 +2,7 @@ import math
 import random
 import pygame
 
-from src.engine.rendering import bresenham, scanline_fill, desenhar_poligono
+from src.engine.rendering import bresenham, scanline_fill, desenhar_poligono, copiar_superficie
 from src.engine.primitivas import circulo, elipse
 from src.engine.fill import boundary_fill, scanline_fill_gradiente
 from src.engine.clipping import desenhar_linha_recortada, desenhar_poligono_recortado
@@ -155,7 +155,7 @@ class Intro:
     def draw(self, tela, dt=0.0):
         self.tempo += dt
         t = self.tempo
-        tela.blit(self.fundo, (0, 0))  # camada estática cacheada
+        copiar_superficie(tela, self.fundo, 0, 0) 
 
         cx, cy = self.CENTRO
 

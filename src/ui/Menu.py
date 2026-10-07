@@ -1,6 +1,7 @@
 import pygame
 from src.ui.Button import Button
 from src.engine.fonte import desenhar_texto_centralizado
+from src.engine.rendering import scanline_fill
 
 OPTIONS = [
     ("START", "start"),
@@ -66,7 +67,14 @@ class Menu:
             return
         self.needs_redraw = False
 
-        tela.fill((15, 15, 28))
+        fundo = [
+            (0, 0),
+            (self.screen_width - 1, 0),
+            (self.screen_width - 1, self.screen_height - 1),
+            (0, self.screen_height - 1)
+        ]
+
+        scanline_fill(tela, fundo, (15, 15, 28))
 
         cx = self.screen_width // 2
         desenhar_texto_centralizado(tela, "ZOMBOTS", cx, 95, (120, 230, 120), escala=8)

@@ -1,5 +1,5 @@
 import pygame
-from src.engine.rendering import desenhar_poligono
+from src.engine.rendering import desenhar_poligono, scanline_fill
 from src.engine.fonte import desenhar_texto_centralizado
 
 
@@ -32,7 +32,14 @@ class InfoScreen:
             return
         self.needs_redraw = False
 
-        tela.fill((15, 15, 28))
+        fundo = [
+            (0, 0),
+            (self.screen_width - 1, 0),
+            (self.screen_width - 1, self.screen_height - 1),
+            (0, self.screen_height - 1)
+        ]
+
+        scanline_fill(tela, fundo, (15, 15, 28))
 
         cx = self.screen_width // 2
         desenhar_texto_centralizado(tela, self.title, cx, 80, (120, 230, 120), escala=5)
