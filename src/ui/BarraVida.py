@@ -19,7 +19,6 @@ def _cores_por_vida(proporcao):
 
 def _montar_barra(largura, altura, vida, vida_max):
     superficie = pygame.Surface((largura, altura))
-    superficie.fill((0, 0, 0))
 
     # Fundo: gradiente vertical cinza escuro (cor por vértice)
     fundo = [(0, 0), (largura, 0), (largura, altura), (0, altura)]
@@ -60,7 +59,6 @@ _cache_especial = {}
 
 def _montar_barra_especial(largura, altura, cheio_px, pronto):
     superficie = pygame.Surface((largura, altura))
-    superficie.fill((0, 0, 0))
 
     fundo = [(0, 0), (largura, 0), (largura, altura), (0, altura)]
     scanline_fill_gradiente(superficie, fundo,

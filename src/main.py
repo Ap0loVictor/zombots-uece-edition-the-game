@@ -190,7 +190,6 @@ def desenhar_cena(partida, tela):
     janela = calcular_camera(partida["player"], partida["width"], partida["height"], x_ini, x_fim)
     camera_x = janela[0]
 
-    tela.fill((30, 30, 45))  # fases sem cenário ainda
     for cen, off in zip(partida["cenarios"], partida["offsets"]):
         cen.desenhar(tela, off, camera_x)
     seres = sorted(partida["things"], key=lambda s: s.y + getattr(s, "height", 0))  # quem está mais abaixo (pés) fica na frente
@@ -527,8 +526,6 @@ def runGame():
                     menu.open()
                 elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_p:
                     estado = "paused"
-                    # Desenhado uma vez só: o frame congelado fica no buffer e o
-                    # tela.fill de atualizar_partida() apaga o texto ao despausar
                     desenhar_texto_centralizado(tela, "PAUSED", width // 2, height // 2,
                                                 (255, 255, 255), escala=6)
 
