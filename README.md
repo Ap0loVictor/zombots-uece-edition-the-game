@@ -93,6 +93,25 @@ Em Linux/macOS, utilize `python3` caso `python` não esteja disponível.
 
 Não há etapa de compilação: o projeto é executado diretamente pelo interpretador Python.
 
+### Áudio
+
+O gerenciador `src/engine/audio.py` usa os arquivos de `assets/Audio/`. A música toca
+em loop com volume padrão de 40%: menu nas telas de navegação, trilha de fundo nas
+fases 1–4, MiniBoss na fase 5 e FinalBoss na fase 6. Pausar o jogo pausa o áudio;
+continuar retoma do mesmo ponto. A tela de vitória encerra a música do chefe.
+
+Os efeitos acompanham ataques, dano, mortes e navegação. O conjunto de sons do
+Apolo é compartilhado pelos personagens jogáveis. Golpes bloqueados por cooldown
+e dano bloqueado por invencibilidade/dash não disparam efeitos.
+
+Para ajustar os volumes por código, use `audio.set_music_volume(0.4)` e
+`audio.set_sfx_volume(1.0)` após importar `audio` de `src.engine.audio` (valores entre
+0 e 1). Arquivos ausentes ou dispositivo de áudio indisponível geram avisos sem
+impedir o jogo de funcionar.
+
+Execute `python -m unittest discover -s tests -v` para validar os arquivos e os
+gatilhos com drivers de áudio e vídeo simulados, sem abrir uma janela ou emitir som.
+
 ---
 
 ## Como Jogar

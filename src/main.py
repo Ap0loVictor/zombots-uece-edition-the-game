@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+from src.engine.audio import audio
 from src.game.entities.Player import Player
 from src.game.props.Rock import Rock
 from src.game.props.Torn import Torn
@@ -441,6 +442,7 @@ def atualizar_partida(partida, tela, dt, keys):
 
 def runGame():
     pygame.init()
+    audio.initialize()
     width, height = 800, 600
     tela = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Zombots")
@@ -569,7 +571,11 @@ def runGame():
                 telas_info["vitoria"].open()
         elif estado in telas_info:
             telas_info[estado].draw(tela)
+        audio.update_state(estado, partida["fase_atual"] if partida else None)
         pygame.display.flip()
+
+    audio.shutdown()
+    pygame.quit()
 
 def desenhar_seta_transicao(tela, zona, camera_x, centro_y_player, tempo, cor=(255, 255, 0)):
     zona_x, zona_y, zona_w, zona_h = zona
