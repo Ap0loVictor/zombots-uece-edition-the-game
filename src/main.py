@@ -94,8 +94,7 @@ def gerar_inimigos_regulares(bordas, zona_y, tipos, lado="direita"):
     posicoes_y = [y_min + o + i * espacamento for i, o in enumerate(offsets)]
     random.shuffle(posicoes_y)
 
-    inimigos = [Enemy(start_x=x_de_spawn(bordas, lado, i), start_y=y,
-                  enemy_type=tipos[i % len(tipos)], damage=5)
+    inimigos = [Enemy(start_x=x_de_spawn(bordas, lado, i),start_y=y,enemy_type=tipos[i % len(tipos)])
             for i, y in enumerate(posicoes_y)]
     for i, inimigo in enumerate(inimigos):
         inimigo.slot_x = 28 if i % 2 == 0 else -28  # cada um mira um lado do player
@@ -231,8 +230,6 @@ def desenhar_hud(partida, tela, janela_camera=None):
     desenhar_texto_centralizado(tela, f"ZOOM {zoom:.1f}X", (vx0 + vx1) // 2, vy1 + 14,
                                 (235, 235, 245), escala=2)
         # Barra grande do chefe:
-    # fase 5 -> Gui Barros
-    # fase 6 -> Mr. Black
 
     if fase == 4:
         boss = next((e for e in partida["enemies"] if isinstance(e, Professor)),None)
