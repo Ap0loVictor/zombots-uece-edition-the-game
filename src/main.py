@@ -17,6 +17,19 @@ from src.ui.Intro import Intro
 from src.ui.BarraVida import desenhar_barra_vida, desenhar_barra_especial
 from src.engine.fonte import desenhar_texto_centralizado
 from src.ui.CharacterSelect import CharacterSelect
+from src.engine.background import Cenario, ZONAS_JOGAVEIS, escurecer
+from assets.sprites.entities.EnemySprite import get_enemy_animations, ENEMY_ANIMATIONS
+
+DURACAO_FADE = 0.5
+DURACAO_TITULO = 2.5
+
+# índice da fase -> segunda onda, que entra quando restam <= quando_restam inimigos da primeira
+ONDAS_EXTRAS = {
+    0: {"tipos": ("zombie",), "lado": "esquerda", "quando_restam": 1},
+    1: {"tipos": ("zombie", "robot"), "lado": "esquerda", "quando_restam": 1},
+    2: {"tipos": ("zombie", "bobie"), "lado": "esquerda", "quando_restam": 1},
+    3: {"tipos": ("robot", "zombie"), "lado": "esquerda", "quando_restam": 2},
+}
 
 def renderizeBeings(beings, tela, camera_x=0):
     for being in beings:
@@ -51,64 +64,84 @@ MIN_INIMIGOS_REGULARES = 2
 MAX_INIMIGOS_REGULARES = 5
 
 
-def gerar_inimigos_regulares(offset_x, width, height, tipos):
-    """Sorteia quantidade e posições na borda direita, sem sobrepor hitboxes."""
-    max_y = max(0, height - Enemy.HEIGHT)
+def calcular_bordas(camera_x, width, fim_fase):
+    return {
+        "esquerda": camera_x - Enemy.WIDTH,
+        "direita": min(camera_x + width, fim_fase - Enemy.WIDTH),
+    }
+
+def x_de_spawn(bordas, lado, i):
+    if lado == "ambos":
+        lado = "esquerda" if i % 2 else "direita"
+    return bordas[lado]
+
+def gerar_inimigos_regulares(bordas, zona_y, tipos, lado="direita"):
+    min_y, max_y = zona_y
+    y_min = min_y - Enemy.HITBOX[1]
+    y_max = max_y - Enemy.HITBOX[1] - Enemy.HITBOX[3]
+    faixa = max(0, y_max - y_min)
     espacamento = Enemy.HITBOX[3]
-    capacidade = 1 + max_y // espacamento
+    capacidade = 1 + faixa // espacamento
     maximo = min(MAX_INIMIGOS_REGULARES, capacidade)
     minimo = min(maximo, max(MIN_INIMIGOS_REGULARES, len(tipos)))
     quantidade = random.randint(minimo, maximo)
-    spawn_x = offset_x + max(0, width - Enemy.WIDTH)
 
-    # Distribui o espaço livre aleatoriamente entre os inimigos. Não há faixas
-    # fixas de Y; a distância mínima evita travamento por colisão no nascimento.
-    espaco_livre = max_y - (quantidade - 1) * espacamento
+    espaco_livre = faixa - (quantidade - 1) * espacamento
     offsets = sorted(random.randint(0, espaco_livre) for _ in range(quantidade))
-    posicoes_y = [offset + i * espacamento for i, offset in enumerate(offsets)]
+    posicoes_y = [y_min + o + i * espacamento for i, o in enumerate(offsets)]
     random.shuffle(posicoes_y)
 
-    return [
-        Enemy(start_x=spawn_x, start_y=y, enemy_type=tipos[i % len(tipos)], damage=5)
-        for i, y in enumerate(posicoes_y)
-    ]
+    inimigos = [Enemy(start_x=x_de_spawn(bordas, lado, i), start_y=y,
+                  enemy_type=tipos[i % len(tipos)], damage=5)
+            for i, y in enumerate(posicoes_y)]
+    for i, inimigo in enumerate(inimigos):
+        inimigo.slot_x = 28 if i % 2 == 0 else -28  # cada um mira um lado do player
+    return inimigos
 
+def fase_1(bordas, zona_y):
+    return gerar_inimigos_regulares(bordas, zona_y, ("zombie", "zombot"), lado="direita")
 
-def fase_1(offset_x, width, height):
-    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "zombot"))
+def fase_2(bordas, zona_y):
+    return gerar_inimigos_regulares(bordas, zona_y, ("zombie", "robot"), lado="direita")  # troque por "esquerda" ou "ambos"
 
-def fase_2(offset_x, width, height):
-    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "robot"))
+def fase_3(bordas, zona_y):
+    return gerar_inimigos_regulares(bordas, zona_y, ("zombie", "robot", "bobie"))
 
-def fase_3(offset_x, width, height):
-    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "robot", "bobie"))
+def fase_4(bordas, zona_y):
+    return gerar_inimigos_regulares(bordas, zona_y, ("zombie", "robot", "robot"))
 
-def fase_4(offset_x, width, height):
-    return gerar_inimigos_regulares(offset_x, width, height, ("zombie", "robot", "robot"))
+def fase_5(bordas, zona_y):
+    return [SubBoss(start_x=bordas["direita"], start_y=zona_y[0])]
 
-def fase_5(offset_x, width, height):
-    return [SubBoss(start_x=offset_x + width // 2, start_y=50)]
+def fase_6(bordas, zona_y):
+    return [FinalBoss(start_x=bordas["direita"], start_y=zona_y[0])]
 
-def fase_6(offset_x, width, height):
-    return [FinalBoss(start_x=offset_x + width // 2, start_y=50)]
+LARGURA_PADRAO = 900  # fases ainda sem cenário
+FASES = [fase_1, fase_2, fase_3, fase_4, fase_5, fase_6]
 
-LARGURA_FASE = 900
-FASES = [ fase_1, fase_2, fase_3, fase_4, fase_5, fase_6]
-
-def spawnar_fase(indice_fase, width, height):
+def spawnar_fase(indice_fase, bordas, zonas):
     if indice_fase < len(FASES):
-        offset_x = indice_fase * LARGURA_FASE
-        return FASES[indice_fase](offset_x, width, height)
+        return FASES[indice_fase](bordas, zonas[indice_fase])
     return []  # não há mais fases -> vitória
 
 def nova_partida(width, height, personagem="apolo"):
-    player = Player(start_x=50, start_y=height // 2, character=personagem)
-    rock = Rock(200, 300)
-    torn = Torn(400, 200)
-    box1 = Box(600, 500)
+    cenarios = [Cenario(i, height) for i in range(len(ZONAS_JOGAVEIS))]
+    larguras = [c.largura for c in cenarios] + [LARGURA_PADRAO] * (len(FASES) - len(cenarios))
+    offsets = [sum(larguras[:i]) for i in range(len(larguras))]
+
+    zonas = [(c.zona_topo - Enemy.HITBOX[3], c.zona_base) for c in cenarios]
+    zonas += [zonas[-1]] * (len(FASES) - len(zonas))  # fases sem cenário reaproveitam a última zona
+
+    pes_y = (cenarios[0].zona_topo + cenarios[0].zona_base) // 2
+
+    player = Player(start_x=50, start_y=pes_y - 110, character=personagem)
+    rock = Rock(200, pes_y - 40)
+    torn = Torn(400, pes_y - 60)
+    box1 = Box(600, pes_y)
 
     fase_atual = 0
-    enemies = spawnar_fase(fase_atual, width, height)
+    bordas = calcular_bordas(0, width, larguras[0])
+    enemies = spawnar_fase(fase_atual, bordas, zonas)
 
     props = [rock, torn]
     boxes = [box1]
@@ -125,49 +158,158 @@ def nova_partida(width, height, personagem="apolo"):
         "fase_atual": fase_atual,
         "width": width,
         "height": height,
+        "cenarios": cenarios,
+        "larguras": larguras,
+        "offsets": offsets,
+        "zonas": zonas,
         "limite_esquerdo": 0,  # avança e nunca mais recua
-        "largura_mundo": LARGURA_FASE * len(FASES),
+        "largura_mundo": sum(larguras),
         "viewport_minimapa": (600, 20, 780, 160),
         "vitoria": False,
         "aguardando_transicao": False,
         "tempo_transicao": 0.0,
+        "transicao": None,
+        "titulo": {"texto": "FASE 1", "tempo": 0.0},
+        "onda_extra": ONDAS_EXTRAS.get(fase_atual),
     }
 
+def desenhar_cena(partida, tela):
+    fase = partida["fase_atual"]
+    x_ini = partida["offsets"][fase]
+    x_fim = x_ini + partida["larguras"][fase]
+    janela = calcular_camera(partida["player"], partida["width"], partida["height"], x_ini, x_fim)
+    camera_x = janela[0]
+
+    tela.fill((30, 30, 45))  # fases sem cenário ainda
+    for cen, off in zip(partida["cenarios"], partida["offsets"]):
+        cen.desenhar(tela, off, camera_x)
+    seres = sorted(partida["things"], key=lambda s: s.y + getattr(s, "height", 0))  # quem está mais abaixo (pés) fica na frente
+    renderizeBeings(seres, tela=tela, camera_x=camera_x)
+    return janela, camera_x
+
+def desenhar_hud(partida, tela, janela_camera):
+    player = partida["player"]
+    desenhar_barra_vida(tela, 20, 20, player.health, player.max_health)
+    desenhar_barra_especial(tela, 20, 68, player.special_progress, player.special_ready)
+
+    fase = partida["fase_atual"]
+    fundo = None
+    if fase < len(partida["cenarios"]):
+        cen = partida["cenarios"][fase]
+        x_ini = partida["offsets"][fase]
+        u0 = (janela_camera[0] - x_ini) / cen.largura
+        u1 = (janela_camera[2] - x_ini) / cen.largura
+        fundo = (cen.matriz.transpose(1, 0, 2), u0, u1)  # surfarray (largura, altura) -> (altura, largura)
+
+    desenhar_minimapa(tela, partida["things"], janela_camera, partida["viewport_minimapa"],
+                      cor_fundo=(10, 10, 20), cor_borda=(255, 255, 255), fundo=fundo)
+
+def desenhar_titulo(partida, tela, dt):
+    t = partida["titulo"]
+    if t is None:
+        return
+    t["tempo"] += dt
+    if t["tempo"] >= DURACAO_TITULO:
+        partida["titulo"] = None
+        return
+
+    entrada = min(1.0, t["tempo"] / 0.4)
+    y = -30 + 110 * entrada                    # translação: desce do topo até y = 80
+    escala = round(9 - 4 * entrada)            # escala: 9x -> 5x
+    saida = max(0.0, (t["tempo"] - (DURACAO_TITULO - 0.6)) / 0.6)
+    brilho = 1 - saida                         # fade-out nos últimos 0,6 s
+
+    cx = tela.get_width() // 2
+    sombra = tuple(int(c * brilho) for c in (10, 10, 25))
+    cor = tuple(int(c * brilho) for c in (255, 220, 60))
+    desenhar_texto_centralizado(tela, t["texto"], cx + 4, int(y) + 4, sombra, escala)
+    desenhar_texto_centralizado(tela, t["texto"], cx, int(y), cor, escala)
+
+def entrar_na_proxima_fase(partida):
+    player = partida["player"]
+    proxima = partida["fase_atual"] + 1
+    x_ini = partida["offsets"][proxima]
+    x_fim = x_ini + partida["larguras"][proxima]
+
+    player.x = x_ini + 50  # ponta esquerda da nova fase
+    min_y = partida["zonas"][proxima][0]
+    player.y = max(player.y, min_y - player.hitbox[1])  # a zona da nova fase pode começar mais embaixo
+    partida["limite_esquerdo"] = x_ini
+    partida["projeteis"].clear()
+
+    camera_x = calcular_camera(player, partida["width"], partida["height"], x_ini, x_fim)[0]
+    bordas = calcular_bordas(camera_x, partida["width"], x_fim)
+    novos = spawnar_fase(proxima, bordas, partida["zonas"])
+
+    partida["fase_atual"] = proxima
+    partida["enemies"].extend(novos)
+    partida["things"].extend(novos)
+    partida["aguardando_transicao"] = False
+    partida["tempo_transicao"] = 0.0
+    partida["titulo"] = {"texto": f"FASE {proxima + 1}", "tempo": 0.0}
+    partida["onda_extra"] = ONDAS_EXTRAS.get(proxima)
+
+def atualizar_transicao(partida, tela, dt):
+    tr = partida["transicao"]
+    tr["tempo"] += dt
+
+    if tr["etapa"] == "saindo":
+        if tr["tempo"] >= DURACAO_FADE:
+            entrar_na_proxima_fase(partida)
+            tr["etapa"], tr["tempo"] = "entrando", 0.0
+    elif tr["tempo"] >= DURACAO_FADE:
+        partida["transicao"] = None
+
+    janela, _ = desenhar_cena(partida, tela)
+    desenhar_hud(partida, tela, janela)
+
+    if partida["transicao"]:
+        p = min(1.0, tr["tempo"] / DURACAO_FADE)
+        escurecer(tela, 1 - p if tr["etapa"] == "saindo" else p)
+
+    desenhar_titulo(partida, tela, dt)  # por cima do fade, para o texto não escurecer
+    return "playing"
+
 def atualizar_partida(partida, tela, dt, keys):
+    if partida["transicao"]:
+        return atualizar_transicao(partida, tela, dt)
+
     player = partida["player"]
     rock = partida["rock"]
     torn = partida["torn"]
     box1 = partida["box1"]
     enemies = partida["enemies"]
     things = partida["things"]
-    limits = (partida["limite_esquerdo"], 0, partida["largura_mundo"], partida["height"])
+    fase = partida["fase_atual"]
+    min_y, max_y = partida["zonas"][fase]
+    fim_da_fase = partida["offsets"][fase] + partida["larguras"][fase]
+
+    limits_player = (partida["limite_esquerdo"], min_y, fim_da_fase, max_y)
+    limits = (None, min_y, fim_da_fase, max_y)  # borda esquerda aberta: inimigo pode nascer fora da tela à esquerda
+    limits_proj = (0, 0, fim_da_fase, partida["height"])
 
     for enemy in enemies:
         others = [rock] + [i for i in enemies if i is not enemy]  # sem o player aqui
-        enemy.update(dt, target=player.get_position(), solid_entities=others, bounds=limits)
+        alvo = (player.x + getattr(enemy, "slot_x", 0), player.y)
+        enemy.update(dt, target=alvo, solid_entities=others, bounds=limits)
 
-    player.update(dt=dt, keys=keys, solid_entities=[rock] if player.is_dashing else [rock] + enemies, bounds=limits)
+    player.update(dt=dt, keys=keys, solid_entities=[rock] if player.is_dashing else [rock] + enemies, bounds=limits_player)
     box1.update(dt)
 
     # Verifica contato após o movimento; o primeiro frame do ataque já será desenhado.
     for enemy in enemies:
         enemy.try_attack(player)
 
-    tela.fill((30, 30, 45))
-
-    janela_camera = calcular_camera(player, partida["width"], partida["height"], partida["largura_mundo"])
-    camera_x = janela_camera[0]
-
-    renderizeBeings(things, tela=tela, camera_x=camera_x)
+    janela_camera, camera_x = desenhar_cena(partida, tela)
 
     player_box = get_world_hitbox(player)
     torn_box = get_world_hitbox(torn)
     box_box = get_world_hitbox(box1)
 
-    if check_aabb_collision(*player_box,*torn_box):
+    if check_aabb_collision(*player_box, *torn_box):
         player.receive_damage(torn.damage)
 
-    if check_aabb_collision(*player_box,*box_box):
+    if check_aabb_collision(*player_box, *box_box):
         box1.receive_damage(player.damage)
 
     if player.is_attacking and not player.has_hit:
@@ -196,7 +338,7 @@ def atualizar_partida(partida, tela, dt, keys):
     # ---- Projéteis do ataque especial (Hadouken) ----
     projeteis = partida["projeteis"]
     for proj in projeteis:
-        proj.update(dt, bounds=limits)
+        proj.update(dt, bounds=limits_proj)
         proj_box = get_world_hitbox(proj)
 
         if check_aabb_collision(*proj_box, *get_world_hitbox(rock)):
@@ -220,13 +362,19 @@ def atualizar_partida(partida, tela, dt, keys):
 
     # Fazendo um teste de remoção
     removeBeing(object=box1, beings=things, condition=box1.alive, message="Quebraste a caixa")
-    # entities = removeBeings(entities)
 
     enemies[:] = removeBeings(enemies)
     things[:] = removeBeings(things)
 
-    tem_proxima_fase = partida["fase_atual"] + 1 < len(FASES)
-    fim_da_fase = (partida["fase_atual"] + 1) * LARGURA_FASE
+    onda = partida["onda_extra"]
+    if onda and len(enemies) <= onda["quando_restam"]:
+        partida["onda_extra"] = None
+        bordas = calcular_bordas(camera_x, partida["width"], fim_da_fase)
+        novos = gerar_inimigos_regulares(bordas, partida["zonas"][fase], onda["tipos"], onda["lado"])
+        enemies.extend(novos)
+        things.extend(novos)
+
+    tem_proxima_fase = fase + 1 < len(FASES)
 
     if not enemies and not partida["vitoria"] and not partida["aguardando_transicao"]:
         if tem_proxima_fase:
@@ -241,31 +389,14 @@ def atualizar_partida(partida, tela, dt, keys):
         player_box = get_world_hitbox(player)
 
         if check_aabb_collision(*player_box, *zona):
-            proxima_fase = partida["fase_atual"] + 1
-            novos_inimigos = spawnar_fase(proxima_fase, partida["width"], partida["height"])
-
-            partida["fase_atual"] = proxima_fase
-            enemies.extend(novos_inimigos)
-            things.extend(novos_inimigos)
-            partida["aguardando_transicao"] = False
-            partida["tempo_transicao"] = 0.0
-            # nunca trava além da posição real do player, evita deadlock de colisão
-            partida["limite_esquerdo"] = max(partida["limite_esquerdo"], player.x - 20)
-            print(f"Fase {proxima_fase} iniciada!")
+            partida["transicao"] = {"etapa": "saindo", "tempo": 0.0}
         else:
             partida["tempo_transicao"] += dt
             centro_y_player = player.y + player.height / 2
             desenhar_seta_transicao(tela, zona, camera_x, centro_y_player, partida["tempo_transicao"])
 
-    # PARA VER HITBOXES, APAGAR ANTES DE BOTAR NO ORIGINAL PQ NÃO PODEMOS USAR FUNÇÕES DO PYGAME
-    # for thing in things:
-    #     pygame.draw.rect(tela,(0, 0, 0),(thing.x + thing.hitbox[0],thing.y + thing.hitbox[1],thing.hitbox[2],thing.hitbox[3]),2)
-
-    desenhar_barra_vida(tela, 20, 20, player.health, player.max_health)
-    desenhar_barra_especial(tela, 20, 68, player.special_progress, player.special_ready)
-    # Minimapa
-    desenhar_minimapa(tela, things, janela_camera, partida["viewport_minimapa"],
-                       cor_fundo=(10, 10, 20), cor_borda=(255, 255, 255))
+    desenhar_hud(partida, tela, janela_camera)
+    desenhar_titulo(partida, tela, dt)
 
     return "vitoria" if partida["vitoria"] else "playing"
 
@@ -275,6 +406,9 @@ def runGame():
     tela = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Zombots")
     clock = pygame.time.Clock()
+
+    for tipo in ENEMY_ANIMATIONS:  # carrega as sprites uma vez, para o primeiro spawn não congelar
+        get_enemy_animations(tipo)
 
     menu = Menu(width, height)
     intro = Intro(width, height)
@@ -313,7 +447,7 @@ def runGame():
     running = True
 
     while running:
-        dt = clock.tick(60) / 1000.0  # Delta time em segundos
+        dt = min(clock.tick(60) / 1000.0, 1 / 30)  # evita saltos grandes de movimento quando o FPS cai
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -406,8 +540,8 @@ def desenhar_seta_transicao(tela, zona, camera_x, centro_y_player, tempo, cor=(2
     scanline_fill(tela, seta, cor_pulsada)
     desenhar_poligono(tela, seta, cor_pulsada)
 
-def calcular_camera(player, width, height, largura_mundo):
+def calcular_camera(player, width, height, x_min, x_max):
     centro_x = player.x + player.width / 2
     camera_x = centro_x - width / 2
-    camera_x = max(0, min(camera_x, max(0, largura_mundo - width)))
+    camera_x = max(x_min, min(camera_x, max(x_min, x_max - width)))
     return (camera_x, 0, camera_x + width, height)
