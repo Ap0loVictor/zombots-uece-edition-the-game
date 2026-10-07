@@ -4,7 +4,8 @@ from itertools import combinations
 from unittest.mock import patch
 
 from src import main
-from src.game.entities.Enemy import Enemy, FinalBoss, SubBoss
+from src.game.entities.Enemy import Enemy
+from src.game.entities.Villain import MrBlack, Professor
 from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 
 
@@ -81,7 +82,7 @@ class EnemySpawningTests(unittest.TestCase):
     def test_boss_phases_keep_exact_count_position_and_stats_without_randomness(self):
         with patch.object(main.random, "randint", side_effect=AssertionError("Boss spawn must not be random")):
             for phase, cls, health, damage, speed in (
-                (4, SubBoss, 200, 25, 80), (5, FinalBoss, 500, 40, 60),
+                (4, Professor, 200, 15, 80), (5, MrBlack, 500, 20, 70),
             ):
                 with self.subTest(phase=phase):
                     enemies = main.spawnar_fase(phase, 800, 600)

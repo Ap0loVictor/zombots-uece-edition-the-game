@@ -11,7 +11,8 @@ import pygame
 from assets.sprites.entities.EnemySprite import ENEMY_ANIMATIONS, get_enemy_sprite
 from src import main
 from src.engine.sprite import draw_sprite_scaled
-from src.game.entities.Enemy import Enemy, FinalBoss, SubBoss
+from src.game.entities.Enemy import Enemy
+from src.game.entities.Villain import MrBlack, Professor
 from src.game.entities.Player import Player
 
 
@@ -175,10 +176,10 @@ class EnemyAnimationTests(unittest.TestCase):
     def test_bobie_spawns_in_phase_three_and_boss_stats_are_preserved(self):
         enemies = main.fase_3(1800, 800, 600)
         self.assertEqual({enemy.enemy_type for enemy in enemies}, {"zombie", "robot", "bobie"})
-        for boss_type, health, damage, speed in ((SubBoss, 200, 25, 80), (FinalBoss, 500, 40, 60)):
+        for boss_type, health, damage, speed in ((Professor, 200, 15, 80), (MrBlack, 500, 20, 70)):
             boss = boss_type(100, 100)
             self.assertEqual((boss.health, boss.damage, boss.speed), (health, damage, speed))
-            self.assertEqual(len(boss.attack_frames), 8)
+            self.assertEqual(len(boss.frames["punch"]), 7)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,8 @@ import random
 from src.game.entities.Player import Player
 from src.game.props.Rock import Rock
 from src.game.props.Torn import Torn
-from src.game.entities.Enemy import Enemy,SubBoss, FinalBoss
+from src.game.entities.Enemy import Enemy
+from src.game.entities.Villain import Professor, MrBlack
 from src.game.entities.Box import Box
 
 from src.engine.sprite import draw_sprite_scaled
@@ -18,7 +19,7 @@ from src.ui.BarraVida import desenhar_barra_vida, desenhar_barra_especial
 from src.engine.fonte import desenhar_texto_centralizado, desenhar_texto
 from src.ui.CharacterSelect import CharacterSelect
 from src.engine.background import Cenario, ZONAS_JOGAVEIS, escurecer
-from assets.sprites.entities.EnemySprite import get_enemy_animations, ENEMY_ANIMATIONS
+from assets.sprites.entities.EnemySprite import get_enemy_animations, ENEMY_ANIMATIONS, get_villain_animations, VILLAIN_ANIMATIONS
 
 DURACAO_FADE = 0.5
 DURACAO_TITULO = 2.5
@@ -36,8 +37,9 @@ def renderizeBeings(beings, tela, camera_x=0):
 
         if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
             espelhar = getattr(being, "flip_x", False)
-            draw_sprite_scaled(tela, being.sprite.matrix, int(being.x - camera_x), int(being.y),
-                                being.height, flip_x=espelhar)
+            off_x, off_y, altura = being.sprite_box() if hasattr(being, "sprite_box") else (0, 0, being.height)
+            draw_sprite_scaled(tela, being.sprite.matrix, int(being.x + off_x - camera_x), int(being.y + off_y),
+                                altura, flip_x=espelhar)
         else:
             for polygon in being.get_polygons():
                 vertices_tela = [(vx - camera_x, vy) for vx, vy in polygon["vertices"]]
@@ -55,7 +57,8 @@ def removeBeing(beings, object, condition, message):
 # Essas funções não são as mesmas.
 
 def removeBeings(beings):
-   return [being for being in beings if getattr(being, "alive", True)]
+   # o vilão derrotado fica na lista até terminar de cair
+   return [being for being in beings if getattr(being, "alive", True) or getattr(being, "playing_death", False)]
 
 def updateBeing(entities):
     pass # Acho que não vai dar pra fazer esse.
@@ -111,10 +114,10 @@ def fase_4(bordas, zona_y):
     return gerar_inimigos_regulares(bordas, zona_y, ("zombie", "robot", "robot"))
 
 def fase_5(bordas, zona_y):
-    return [SubBoss(start_x=bordas["direita"], start_y=zona_y[0])]
+    return [Professor(start_x=bordas["direita"], start_y=zona_y[0])]
 
 def fase_6(bordas, zona_y):
-    return [FinalBoss(start_x=bordas["direita"], start_y=zona_y[0])]
+    return [MrBlack(start_x=bordas["direita"], start_y=zona_y[0])]
 
 LARGURA_PADRAO = 900  # fases ainda sem cenário
 FASES = [fase_1, fase_2, fase_3, fase_4, fase_5, fase_6]
@@ -314,11 +317,11 @@ def atualizar_partida(partida, tela, dt, keys):
     limits_proj = (0, 0, fim_da_fase, partida["height"])
 
     for enemy in enemies:
-        others = [rock] + [i for i in enemies if i is not enemy]  # sem o player aqui
+        others = [rock] + [i for i in enemies if i is not enemy and i.alive]  # sem o player aqui
         alvo = (player.x + getattr(enemy, "slot_x", 0), player.y)
         enemy.update(dt, target=alvo, solid_entities=others, bounds=limits)
 
-    player.update(dt=dt, keys=keys, solid_entities=[rock] if player.is_dashing else [rock] + enemies, bounds=limits_player)
+    player.update(dt=dt, keys=keys, solid_entities=[rock] if player.is_dashing else [rock] + [e for e in enemies if e.alive], bounds=limits_player)
     box1.update(dt)
 
     # Verifica contato após o movimento; o primeiro frame do ataque já será desenhado.
@@ -434,6 +437,8 @@ def runGame():
 
     for tipo in ENEMY_ANIMATIONS:  # carrega as sprites uma vez, para o primeiro spawn não congelar
         get_enemy_animations(tipo)
+    for tipo in VILLAIN_ANIMATIONS:
+        get_villain_animations(tipo)
 
     menu = Menu(width, height)
     intro = Intro(width, height)

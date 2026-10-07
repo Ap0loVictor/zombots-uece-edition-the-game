@@ -202,8 +202,9 @@ def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor
             continue
         if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
             from src.engine.sprite import draw_sprite_scaled  # import local evita ciclo com rendering.py
-            vx, vy = mundo_viewport((being.x, being.y), janela_mundo, viewport)
-            altura_minimapa = max(1, round(being.height * sy))
+            off_x, off_y, altura = being.sprite_box() if hasattr(being, "sprite_box") else (0, 0, being.height)
+            vx, vy = mundo_viewport((being.x + off_x, being.y + off_y), janela_mundo, viewport)
+            altura_minimapa = max(1, round(altura * sy))
             draw_sprite_scaled(superficie, being.sprite.matrix, int(vx), int(vy), altura_minimapa)
         else:
             for parte in being.get_polygons():
