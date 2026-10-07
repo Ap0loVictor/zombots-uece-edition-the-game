@@ -1,6 +1,6 @@
 import pygame
 
-from src.engine.rendering import desenhar_poligono
+from src.engine.rendering import desenhar_poligono, copiar_superficie
 from src.engine.fill import scanline_fill_gradiente
 from src.engine.fonte import desenhar_texto
 
@@ -47,7 +47,7 @@ def desenhar_barra_vida(tela, x, y, vida, vida_max, largura=200, altura=22):
         _cache.clear()  # guarda só a barra atual
         _cache[chave] = _montar_barra(largura, altura, vida, vida_max)
 
-    tela.blit(_cache[chave], (x, y))
+    copiar_superficie(tela, _cache[chave], x, y)
     desenhar_texto(tela, f"HP {int(vida)}/{int(vida_max)}", x + 4, y + altura + 6, (235, 235, 245), escala=2)
 
 
@@ -84,7 +84,7 @@ def desenhar_barra_especial(tela, x, y, progresso, pronto, largura=200, altura=1
         _cache_especial.clear()
         _cache_especial[chave] = _montar_barra_especial(largura, altura, cheio_px, pronto)
 
-    tela.blit(_cache_especial[chave], (x, y))
+    copiar_superficie(tela, _cache_especial[chave], x, y)
 
     if pronto:
         # pisca "C: HADOUKEN" quando a barra está cheia
