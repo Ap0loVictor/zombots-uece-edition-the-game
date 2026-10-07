@@ -50,6 +50,32 @@ def desenhar_barra_vida(tela, x, y, vida, vida_max, largura=200, altura=22):
     copiar_superficie(tela, _cache[chave], x, y)
     desenhar_texto(tela, f"HP {int(vida)}/{int(vida_max)}", x + 4, y + altura + 6, (235, 235, 245), escala=2)
 
+# ============================================================
+# BARRA DE VIDA DO BOSS
+# ============================================================
+_cache_boss = {}
+
+
+def desenhar_barra_boss(tela, nome, vida, vida_max, largura=650, altura=28):
+    """Desenha a barra grande do chefe na parte inferior da tela."""
+
+    chave = (nome, int(vida), int(vida_max), largura, altura)
+
+    if chave not in _cache_boss:
+        _cache_boss.clear()
+        _cache_boss[chave] = _montar_barra(largura,altura,vida,vida_max)
+
+    x = (tela.get_width() - largura) // 2
+    y = tela.get_height() - altura - 22
+
+    # Nome do boss acima da barra
+    largura_nome = len(nome) * 6 * 3 - 3
+    x_nome = tela.get_width() // 2 - largura_nome // 2
+
+    desenhar_texto(tela,nome,x_nome,y - 29,(255, 235, 180),escala=3)
+
+    copiar_superficie(tela,_cache_boss[chave],x,y)
+
 
 # ============================================================
 # BARRA DO ATAQUE ESPECIAL

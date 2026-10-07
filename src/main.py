@@ -15,7 +15,7 @@ from src.game.mechanics.Physics import check_aabb_collision, get_world_hitbox
 from src.ui.Menu import Menu
 from src.ui.InfoScreen import InfoScreen
 from src.ui.Intro import Intro
-from src.ui.BarraVida import desenhar_barra_vida, desenhar_barra_especial
+from src.ui.BarraVida import desenhar_barra_vida, desenhar_barra_especial, desenhar_barra_boss
 from src.engine.fonte import desenhar_texto_centralizado, desenhar_texto
 from src.ui.CharacterSelect import CharacterSelect
 from src.engine.background import Cenario, ZONAS_JOGAVEIS, escurecer
@@ -230,6 +230,21 @@ def desenhar_hud(partida, tela, janela_camera=None):
     vx0, vy0, vx1, vy1 = partida["viewport_minimapa"]
     desenhar_texto_centralizado(tela, f"ZOOM {zoom:.1f}X", (vx0 + vx1) // 2, vy1 + 14,
                                 (235, 235, 245), escala=2)
+        # Barra grande do chefe:
+    # fase 5 -> Gui Barros
+    # fase 6 -> Mr. Black
+
+    if fase == 4:
+        boss = next((e for e in partida["enemies"] if isinstance(e, Professor)),None)
+
+        if boss is not None:
+            desenhar_barra_boss(tela,"GUI BARROS",boss.health, boss.max_health)
+
+    elif fase == 5:
+        boss = next((e for e in partida["enemies"] if isinstance(e, MrBlack)),None)
+
+        if boss is not None:
+            desenhar_barra_boss(tela,"MR. BLACK",boss.health,boss.max_health)
 
 def desenhar_titulo(partida, tela, dt):
     t = partida["titulo"]
