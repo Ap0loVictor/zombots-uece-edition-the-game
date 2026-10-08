@@ -37,8 +37,6 @@ Um doutor chamado Mr. Black fez um experimento de Grafos que deu errado, pois el
 No entanto, 10 anos no futuro, a resistência conseguiu criar uma máquina do tempo para voltar e salvar o passado.
 Então, Apolo, Jannsen e Gabrielzito voltam no tempo para combater Mr. Black modificado e salvar o futuro.
 
-Mas, para chegar lá, terão de enfrentar os temíveis **Professor** (o Sub-Chefe) e **Mr. Black** (o Chefe Final).
-
 O desfecho depende do jogador: vencer o Mr. Black leva ao **final bom**; ser derrotado pelo Professor ou pelo Mr. Black leva ao **final ruim**.
 
 ---
