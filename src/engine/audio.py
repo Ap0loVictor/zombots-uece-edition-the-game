@@ -62,6 +62,9 @@ class AudioManager:
         for name, path in SFX.items():
             try:
                 sound = pygame.mixer.Sound(str(ASSET_ROOT / path))
+                if sound.get_length() <= 0:
+                    LOGGER.warning("Áudio vazio ou inválido: %s", path)
+                    continue
                 sound.set_volume(self.sfx_volume)
                 self.sounds[name] = sound
             except (pygame.error, OSError) as exc:
@@ -81,10 +84,19 @@ class AudioManager:
         if self.enabled and not self.paused:
             sound = self.sounds.get(name)
             if sound is not None:
-                # Permite golpes simultâneos sem interromper a música.
-                channel = pygame.mixer.find_channel(force=True)
-                if channel is not None:
-                    channel.play(sound)
+                # Sound.play trata a falha do SDL_mixer retornando None.
+                # Channel.play pode acessar um índice -1 nessa situação e
+                # abortar o Python (observado ao coletar o coração).
+                try:
+                    if sound.play() is None:
+                        # Se todos os canais estiverem ocupados, libera o mais
+                        # antigo e tenta novamente, sem interromper a música.
+                        channel = pygame.mixer.find_channel(force=True)
+                        if channel is not None:
+                            channel.stop()
+                            sound.play()
+                except pygame.error as exc:
+                    LOGGER.warning("Não foi possível tocar %s: %s", name, exc)
 
     def stop_sfx(self, name):
         sound = self.sounds.get(name)

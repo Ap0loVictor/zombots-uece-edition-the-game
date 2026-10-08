@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 os.environ["SDL_AUDIODRIVER"] = "dummy"
 os.environ["SDL_VIDEODRIVER"] = "dummy"
@@ -66,6 +66,33 @@ class AudioTests(unittest.TestCase):
             self.manager.update_state("playing", 0)
             self.assertEqual(self.manager.current_music, "background")
 
+    def test_powerup_replaces_oldest_sound_when_channels_are_full(self):
+        self.manager.play_music("background")
+        sound = self.manager.sounds["player_punch"]
+        for index in range(pygame.mixer.get_num_channels()):
+            pygame.mixer.Channel(index).play(sound, loops=-1)
+        self.manager.play_sfx("powerup")
+        self.assertEqual(self.manager.sounds["powerup"].get_num_channels(), 1)
+        self.assertTrue(pygame.mixer.music.get_busy())
+
+    def test_failed_playback_never_uses_channel_play(self):
+        sound = Mock()
+        sound.play.return_value = None
+        channel = Mock()
+        self.manager.sounds["powerup"] = sound
+        with patch.object(pygame.mixer, "find_channel", return_value=channel):
+            self.manager.play_sfx("powerup")
+        channel.stop.assert_called_once_with()
+        channel.play.assert_not_called()
+        self.assertEqual(sound.play.call_count, 2)
+
+    def test_playback_error_does_not_interrupt_game(self):
+        sound = Mock()
+        sound.play.side_effect = pygame.error("audio device unavailable")
+        self.manager.sounds["powerup"] = sound
+        with self.assertLogs("src.engine.audio", level="WARNING"):
+            self.manager.play_sfx("powerup")
+
     def test_boss_music_stops_when_boss_is_defeated(self):
         self.manager.update_state("playing", 4)
         self.assertEqual(self.manager.current_music, "miniboss")
@@ -73,6 +100,23 @@ class AudioTests(unittest.TestCase):
         self.assertIsNone(self.manager.current_music)
         self.manager.update_state("playing", 5, False)
         self.assertEqual(self.manager.current_music, "finalboss")
+
+    def test_empty_decoded_sound_is_not_loaded(self):
+        manager = AudioManager()
+        real_sound = pygame.mixer.Sound
+
+        def load_sound(path):
+            if path.endswith("PowerUp.ogg"):
+                return real_sound(buffer=b"")
+            return real_sound(path)
+
+        with patch.object(pygame.mixer, "Sound", side_effect=load_sound), \
+             self.assertLogs("src.engine.audio", level="WARNING"):
+            manager.initialize()
+        self.assertNotIn("powerup", manager.sounds)
+        self.assertEqual(set(manager.sounds), set(SFX) - {"powerup"})
+        manager.play_sfx("powerup")
+        manager.shutdown()
 
     def test_pause_resumes_without_restarting_and_volumes_are_independent(self):
         self.manager.update_state("playing", 4)
