@@ -509,14 +509,15 @@ zombots-uece-edition-the-game/
 │   │   └── props/
 │   │
 │   └── ui/
+│       ├── BarraVida.py
+│       ├── Button.py
+│       ├── CharacterSelect.py
+│       ├── EndingScreen.py
+│       ├── InfoScreen.py
+│       ├── Intro.py
+│       └── Menu.py
 │
 ├── assets/
-│   ├── Audio/
-│   ├── img/
-│   ├── pxos/
-│   └── sprites/
-│
-└── tests/
 ```
 
 ---
