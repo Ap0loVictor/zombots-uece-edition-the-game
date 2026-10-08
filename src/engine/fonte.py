@@ -1,0 +1,119 @@
+import pygame
+from src.engine.rendering import area_visivel, setPixel
+
+# Fonte bitmap 5x7: cada caractere é uma matriz de 7 linhas por 5 colunas,
+# onde "#" é pixel aceso e "." é pixel apagado.
+LARGURA_GLIFO = 5
+ALTURA_GLIFO = 7
+ESPACAMENTO = 1  # Colunas vazias entre um caractere e outro
+
+GLIFOS = {
+    "A": [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    "B": ["####.", "#...#", "#...#", "####.", "#...#", "#...#", "####."],
+    "C": [".###.", "#...#", "#....", "#....", "#....", "#...#", ".###."],
+    "D": ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
+    "E": ["#####", "#....", "#....", "####.", "#....", "#....", "#####"],
+    "F": ["#####", "#....", "#....", "####.", "#....", "#....", "#...."],
+    "G": [".###.", "#...#", "#....", "#.###", "#...#", "#...#", ".####"],
+    "H": ["#...#", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    "I": [".###.", "..#..", "..#..", "..#..", "..#..", "..#..", ".###."],
+    "J": ["..###", "...#.", "...#.", "...#.", "...#.", "#..#.", ".##.."],
+    "K": ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
+    "L": ["#....", "#....", "#....", "#....", "#....", "#....", "#####"],
+    "M": ["#...#", "##.##", "#.#.#", "#.#.#", "#...#", "#...#", "#...#"],
+    "N": ["#...#", "#...#", "##..#", "#.#.#", "#..##", "#...#", "#...#"],
+    "O": [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    "P": ["####.", "#...#", "#...#", "####.", "#....", "#....", "#...."],
+    "Q": [".###.", "#...#", "#...#", "#...#", "#.#.#", "#..#.", ".##.#"],
+    "R": ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
+    "S": [".####", "#....", "#....", ".###.", "....#", "....#", "####."],
+    "T": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
+    "U": ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    "V": ["#...#", "#...#", "#...#", "#...#", "#...#", ".#.#.", "..#.."],
+    "W": ["#...#", "#...#", "#...#", "#.#.#", "#.#.#", "#.#.#", ".#.#."],
+    "X": ["#...#", "#...#", ".#.#.", "..#..", ".#.#.", "#...#", "#...#"],
+    "Y": ["#...#", "#...#", ".#.#.", "..#..", "..#..", "..#..", "..#.."],
+    "Z": ["#####", "....#", "...#.", "..#..", ".#...", "#....", "#####"],
+    "0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
+    "1": ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
+    "2": [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
+    "3": ["####.", "....#", "....#", ".###.", "....#", "....#", "####."],
+    "4": ["...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#."],
+    "5": ["#####", "#....", "####.", "....#", "....#", "#...#", ".###."],
+    "6": [".###.", "#....", "#....", "####.", "#...#", "#...#", ".###."],
+    "7": ["#####", "....#", "...#.", "..#..", ".#...", ".#...", ".#..."],
+    "8": [".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###."],
+    "9": [".###.", "#...#", "#...#", ".####", "....#", "....#", ".###."],
+    " ": [".....", ".....", ".....", ".....", ".....", ".....", "....."],
+    "-": [".....", ".....", ".....", "#####", ".....", ".....", "....."],
+    "+": [".....", "..#..", "..#..", "#####", "..#..", "..#..", "....."],
+    ".": [".....", ".....", ".....", ".....", ".....", ".##..", ".##.."],
+    ":": [".....", ".##..", ".##..", ".....", ".##..", ".##..", "....."],
+    "/": ["....#", "....#", "...#.", "..#..", ".#...", "#....", "#...."],
+    "!": ["..#..", "..#..", "..#..", "..#..", "..#..", ".....", "..#.."],
+    ">": [".#...", "..#..", "...#.", "....#", "...#.", "..#..", ".#..."],
+    "<": ["...#.", "..#..", ".#...", "#....", ".#...", "..#..", "...#."],
+}
+
+# Converte cada matriz em uma lista de offsets (coluna, linha) dos pixels acesos,
+# assim o desenho não precisa percorrer os pixels apagados a cada frame.
+PIXELS_GLIFO = {
+    caractere: [
+        (coluna, linha)
+        for linha, texto_linha in enumerate(matriz)
+        for coluna, celula in enumerate(texto_linha)
+        if celula == "#"
+    ]
+    for caractere, matriz in GLIFOS.items()
+}
+
+
+def largura_texto(texto, escala=1):
+    if not texto:
+        return 0
+    passo = (LARGURA_GLIFO + ESPACAMENTO) * escala
+    return len(texto) * passo - ESPACAMENTO * escala
+
+
+def altura_texto(escala=1):
+    return ALTURA_GLIFO * escala
+
+
+def desenhar_caractere(superficie, caractere, x, y, cor, escala=1):
+    # Caracteres sem glifo cadastrado ocupam espaço, mas não desenham nada
+    for coluna, linha in PIXELS_GLIFO.get(caractere, []):
+        px = x + coluna * escala
+        py = y + linha * escala
+
+        # Cada pixel da matriz vira um bloco escala x escala
+        for dy in range(escala):
+            for dx in range(escala):
+                setPixel(superficie, px + dx, py + dy, cor)
+
+
+def desenhar_texto(superficie, texto, x, y, cor, escala=1):
+    # (x, y) é o canto superior esquerdo do texto
+    x, y = int(x), int(y)
+    passo = (LARGURA_GLIFO + ESPACAMENTO) * escala
+    xmin, ymin, xmax, ymax = area_visivel(superficie)
+    cor = tuple(cor)[:3]
+
+    pixels = pygame.surfarray.pixels3d(superficie)
+    for i, caractere in enumerate(texto.upper()):
+        ox = x + i * passo
+        # Caracteres sem glifo ocupam espaço, mas não desenham nada
+        for coluna, linha in PIXELS_GLIFO.get(caractere, []):
+            px0 = max(xmin, ox + coluna * escala)
+            px1 = min(xmax + 1, ox + (coluna + 1) * escala)
+            py0 = max(ymin, y + linha * escala)
+            py1 = min(ymax + 1, y + (linha + 1) * escala)
+            if px0 < px1 and py0 < py1:
+                pixels[px0:px1, py0:py1] = cor  # bloco escala x escala de uma vez
+    del pixels
+
+
+def desenhar_texto_centralizado(superficie, texto, cx, cy, cor, escala=1):
+    # (cx, cy) é o centro do texto
+    x = cx - largura_texto(texto, escala) // 2
+    y = cy - altura_texto(escala) // 2
+    desenhar_texto(superficie, texto, x, y, cor, escala)
