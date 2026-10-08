@@ -1,4 +1,6 @@
-from src.engine.rendering import setPixel
+import numpy as np
+import pygame
+from src.engine.rendering import setPixel, area_visivel
 
 
 # ============================================================
@@ -76,11 +78,13 @@ def scanline_fill_gradiente(superficie, pontos, cores):
     if not pontos:
         return
 
+    xmin, ymin, xmax, ymax = area_visivel(superficie)
     ys = [p[1] for p in pontos]
     y_min, y_max = int(min(ys)), int(max(ys))
     n = len(pontos)
 
-    for y in range(y_min, y_max):
+    pixels = pygame.surfarray.pixels3d(superficie)
+    for y in range(max(y_min, ymin), min(y_max, ymax + 1)):
         intersecoes = []
 
         for i in range(n):
@@ -104,15 +108,19 @@ def scanline_fill_gradiente(superficie, pontos, cores):
         for i in range(0, len(intersecoes) - 1, 2):
             x_ini, cor_ini = intersecoes[i]
             x_fim, cor_fim = intersecoes[i + 1]
-
             if x_fim == x_ini:
                 continue
 
-            if cor_ini == cor_fim:  # span de cor constante: sem interpolar por pixel
-                for x in range(int(x_ini), int(x_fim) + 1):
-                    setPixel(superficie, x, y, cor_ini)
+            xs = np.arange(max(int(x_ini), xmin), min(int(x_fim), xmax) + 1)
+            if xs.size == 0:
                 continue
 
-            for x in range(int(x_ini), int(x_fim) + 1):
-                t = (x - x_ini) / (x_fim - x_ini)
-                setPixel(superficie, x, y, interpola_cor(cor_ini, cor_fim, t))
+            if cor_ini == cor_fim:
+                pixels[xs[0]:xs[-1] + 1, y] = cor_ini
+                continue
+
+            t = (xs - x_ini) / (x_fim - x_ini)
+            c_ini, c_fim = np.array(cor_ini), np.array(cor_fim)
+            span = c_ini + (c_fim - c_ini) * t[:, None]  # interpolação por pixel, vetorizada
+            pixels[xs, y] = np.clip(span, 0, 255).astype(np.uint8)
+    del pixels

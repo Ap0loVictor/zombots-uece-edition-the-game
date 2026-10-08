@@ -3,11 +3,11 @@ import math
 import random
 from src.engine.audio import audio
 from src.game.entities.Player import Player
-from src.game.props.Rock import Rock
-from src.game.props.Torn import Torn
 from src.game.entities.Enemy import Enemy
 from src.game.entities.Villain import Professor, MrBlack
 from src.game.entities.Box import Box
+from src.game.entities.Drop import Drop
+from src.game.entities.EfeitoCura import EfeitoCura
 
 from src.engine.sprite import draw_sprite_scaled
 from src.engine.rendering import desenhar_poligono, scanline_fill, desenhar_minimapa, janela_com_zoom
@@ -21,6 +21,8 @@ from src.engine.fonte import desenhar_texto_centralizado, desenhar_texto
 from src.ui.CharacterSelect import CharacterSelect
 from src.engine.background import Cenario, ZONAS_JOGAVEIS, escurecer
 from assets.sprites.entities.EnemySprite import get_enemy_animations, ENEMY_ANIMATIONS, get_villain_animations, VILLAIN_ANIMATIONS
+from src.ui.EndingScreen import EndingScreen
+
 
 DURACAO_FADE = 0.5
 DURACAO_TITULO = 2.5
@@ -36,7 +38,9 @@ ONDAS_EXTRAS = {
 def renderizeBeings(beings, tela, camera_x=0):
     for being in beings:
 
-        if hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
+        if hasattr(being, "draw"):
+            being.draw(tela, camera_x)
+        elif hasattr(being, "sprite") and hasattr(being.sprite, "matrix"):
             espelhar = getattr(being, "flip_x", False)
             off_x, off_y, altura = being.sprite_box() if hasattr(being, "sprite_box") else (0, 0, being.height)
             draw_sprite_scaled(tela, being.sprite.matrix, int(being.x + off_x - camera_x), int(being.y + off_y),
@@ -127,8 +131,23 @@ def spawnar_fase(indice_fase, bordas, zonas):
         return FASES[indice_fase](bordas, zonas[indice_fase])
     return []  # não há mais fases -> vitória
 
+_cache_cenarios = {}
+
+def carregar_cenarios(height):
+    if height not in _cache_cenarios:
+        _cache_cenarios[height] = [Cenario(i, height) for i in range(len(ZONAS_JOGAVEIS))]
+    return _cache_cenarios[height]
+
+
+CURA = 30
+FASES_COM_CAIXA = (4, 5)  # índices das fases dos chefes; a caixa sempre solta vida
+
+def criar_caixa(cenario, x_ini, largura):
+    pes_y = (cenario.zona_topo + cenario.zona_base) // 2
+    return Box(x_ini + int(largura * 0.7), pes_y)
+
 def nova_partida(width, height, personagem="apolo"):
-    cenarios = [Cenario(i, height) for i in range(len(ZONAS_JOGAVEIS))]
+    cenarios = carregar_cenarios(height)
     larguras = [c.largura for c in cenarios] + [LARGURA_PADRAO] * (len(FASES) - len(cenarios))
     offsets = [sum(larguras[:i]) for i in range(len(larguras))]
 
@@ -138,26 +157,22 @@ def nova_partida(width, height, personagem="apolo"):
     pes_y = (cenarios[0].zona_topo + cenarios[0].zona_base) // 2
 
     player = Player(start_x=50, start_y=pes_y - 110, character=personagem)
-    rock = Rock(200, pes_y - 40)
-    torn = Torn(400, pes_y - 60)
-    box1 = Box(600, pes_y)
+    caixas = [criar_caixa(cenarios[0], offsets[0], larguras[0])] if 0 in FASES_COM_CAIXA else []
 
     fase_atual = 0
     bordas = calcular_bordas(0, width, larguras[0])
     enemies = spawnar_fase(fase_atual, bordas, zonas)
 
-    props = [rock, torn]
-    boxes = [box1]
-    entities = [player] + boxes + enemies
+    entities = [player] + caixas + enemies
 
     return {
         "player": player,
-        "rock": rock,
-        "torn": torn,
-        "box1": box1,
+        "caixas": caixas,
+        "drops": [],
+        "efeitos": [],
         "enemies": enemies,
         "projeteis": [],
-        "things": props + entities,
+        "things": entities,
         "fase_atual": fase_atual,
         "width": width,
         "height": height,
@@ -175,6 +190,7 @@ def nova_partida(width, height, personagem="apolo"):
         "transicao": None,
         "titulo": {"texto": "FASE 1", "tempo": 0.0},
         "onda_extra": ONDAS_EXTRAS.get(fase_atual),
+        "tempo_derrota": 0.0,
     }
 
 ZOOM_MIN, ZOOM_MAX, ZOOM_PASSO = 1.0, 4.0, 1.25
@@ -224,7 +240,8 @@ def desenhar_hud(partida, tela, janela_camera=None):
         v1 = janela_mini[3] / altura
         fundo = (cen.matriz.transpose(1, 0, 2), u0, u1, v0, v1)  # surfarray (largura, altura) -> (altura, largura)
 
-    desenhar_minimapa(tela, partida["things"], janela_mini, partida["viewport_minimapa"],
+    desenhar_minimapa(tela, partida["things"] + partida["projeteis"] + partida["efeitos"], janela_mini,
+                      partida["viewport_minimapa"],
                       cor_fundo=(10, 10, 20), cor_borda=(255, 255, 255), fundo=fundo)
 
     vx0, vy0, vx1, vy1 = partida["viewport_minimapa"]
@@ -289,6 +306,11 @@ def entrar_na_proxima_fase(partida):
     partida["titulo"] = {"texto": f"FASE {proxima + 1}", "tempo": 0.0}
     partida["onda_extra"] = ONDAS_EXTRAS.get(proxima)
 
+    if proxima in FASES_COM_CAIXA:
+        caixa = criar_caixa(partida["cenarios"][proxima], x_ini, partida["larguras"][proxima])
+        partida["caixas"].append(caixa)
+        partida["things"].append(caixa)
+
 def atualizar_transicao(partida, tela, dt):
     tr = partida["transicao"]
     tr["tempo"] += dt
@@ -315,9 +337,8 @@ def atualizar_partida(partida, tela, dt, keys):
         return atualizar_transicao(partida, tela, dt)
 
     player = partida["player"]
-    rock = partida["rock"]
-    torn = partida["torn"]
-    box1 = partida["box1"]
+    caixas = partida["caixas"]
+    drops = partida["drops"]
     enemies = partida["enemies"]
     things = partida["things"]
     fase = partida["fase_atual"]
@@ -329,12 +350,15 @@ def atualizar_partida(partida, tela, dt, keys):
     limits_proj = (0, 0, fim_da_fase, partida["height"])
 
     for enemy in enemies:
-        others = [rock] + [i for i in enemies if i is not enemy and i.alive]  # sem o player aqui
+        others = [i for i in enemies if i is not enemy and i.alive]  # sem o player aqui
         alvo = (player.x + getattr(enemy, "slot_x", 0), player.y)
         enemy.update(dt, target=alvo, solid_entities=others, bounds=limits)
 
-    player.update(dt=dt, keys=keys, solid_entities=[rock] if player.is_dashing else [rock] + [e for e in enemies if e.alive], bounds=limits_player)
-    box1.update(dt)
+    player.update(dt=dt, keys=keys, solid_entities=[] if player.is_dashing else [e for e in enemies if e.alive], bounds=limits_player)
+    for caixa in caixas:
+        caixa.update(dt)
+    for drop in drops:
+        drop.update(dt)
 
     # Verifica contato após o movimento; o primeiro frame do ataque já será desenhado.
     for enemy in enemies:
@@ -343,14 +367,9 @@ def atualizar_partida(partida, tela, dt, keys):
     janela_camera, camera_x = desenhar_cena(partida, tela)
 
     player_box = get_world_hitbox(player)
-    torn_box = get_world_hitbox(torn)
-    box_box = get_world_hitbox(box1)
-
-    if check_aabb_collision(*player_box, *torn_box):
-        player.receive_damage(torn.damage)
-
-    if check_aabb_collision(*player_box, *box_box):
-        box1.receive_damage(player.damage)
+    for caixa in caixas:
+        if check_aabb_collision(*player_box, *get_world_hitbox(caixa)):
+            caixa.receive_damage(player.damage)
 
     if player.is_attacking and not player.has_hit:
         attack_box = player.get_attack_hitbox()
@@ -369,10 +388,9 @@ def atualizar_partida(partida, tela, dt, keys):
                     }[player.direction]
                     enemy.apply_knockback(kx, ky)
 
-        if box1.alive:
-            box_box = get_world_hitbox(box1)
-            if check_aabb_collision(*attack_box, *box_box):
-                box1.receive_damage(player.damage)
+        for caixa in caixas:
+            if caixa.alive and check_aabb_collision(*attack_box, *get_world_hitbox(caixa)):
+                caixa.receive_damage(player.damage)
                 player.has_hit = True
 
     # ---- Projéteis do ataque especial (Hadouken) ----
@@ -381,10 +399,6 @@ def atualizar_partida(partida, tela, dt, keys):
         proj.update(dt, bounds=limits_proj)
         proj_box = get_world_hitbox(proj)
 
-        if check_aabb_collision(*proj_box, *get_world_hitbox(rock)):
-            proj.alive = False  # a pedra bloqueia o projétil
-            continue
-
         for enemy in enemies:
             if enemy.alive and id(enemy) not in proj.atingidos:
                 if check_aabb_collision(*proj_box, *get_world_hitbox(enemy)):
@@ -392,16 +406,35 @@ def atualizar_partida(partida, tela, dt, keys):
                     enemy.receive_damage(proj.damage)
                     enemy.apply_knockback(proj.vx * 400, proj.vy * 400)
 
-        if box1.alive and check_aabb_collision(*proj_box, *get_world_hitbox(box1)):
-            box1.receive_damage(proj.damage)
+        for caixa in caixas:
+            if caixa.alive and check_aabb_collision(*proj_box, *get_world_hitbox(caixa)):
+                caixa.receive_damage(proj.damage)
 
     for proj in projeteis:
         if proj.alive:
             proj.draw(tela, camera_x)
     projeteis[:] = [p for p in projeteis if p.alive]
 
-    # Fazendo um teste de remoção
-    removeBeing(object=box1, beings=things, condition=box1.alive, message="Quebraste a caixa")
+    efeitos = partida["efeitos"]
+    for efeito in efeitos:
+        efeito.update(dt)
+        efeito.draw(tela, camera_x)
+    efeitos[:] = [e for e in efeitos if e.vivo]
+
+    for caixa in [c for c in caixas if not c.alive]:
+        caixas.remove(caixa)
+        hx, hy, hw, hh = caixa.hitbox
+        drop = Drop(Drop.VIDA, caixa.x + hx + hw / 2, caixa.y + hy + hh / 2)
+        drops.append(drop)
+        things.append(drop)
+
+    for drop in drops[:]:
+        if drop.pronto and check_aabb_collision(*player_box, *get_world_hitbox(drop)):
+            player.heal(CURA)
+            efeitos.append(EfeitoCura(player, CURA))
+            audio.play_sfx("powerup")
+            drop.alive = False
+            drops.remove(drop)
 
     enemies[:] = removeBeings(enemies)
     things[:] = removeBeings(things)
@@ -437,6 +470,12 @@ def atualizar_partida(partida, tela, dt, keys):
 
     desenhar_hud(partida, tela, janela_camera)
     desenhar_titulo(partida, tela, dt)
+
+    # Derrota só conta nas fases dos chefes (índices 4 e 5); espera 1s para a morte aparecer
+    if not partida["vitoria"] and not player.alive and fase >= 4:
+        partida["tempo_derrota"] += dt
+        if partida["tempo_derrota"] >= 1.0:
+            return "derrota"
 
     return "vitoria" if partida["vitoria"] else "playing"
 
@@ -477,11 +516,11 @@ def runGame():
         "settings": InfoScreen(width, height, "SETTINGS", [
             "EM BREVE",
         ]),
-        "vitoria": InfoScreen(width, height, "VITORIA!", [
-            "VOCE DERROTOU O CHEFE FINAL",
-            "",
-            "ESC: VOLTAR AO MENU",
-        ]),
+    }
+
+    finais = {
+        "final_ruim": EndingScreen(width, height, "assets/pxos/Endings/Final Ruim.png"),
+        "final_bom": EndingScreen(width, height, "assets/pxos/Endings/Final_Feliz.png.jpg"),
     }
 
     # Estados possíveis: "menu", "playing", "paused", "controls", "credits", "settings"
@@ -552,6 +591,13 @@ def runGame():
                 if evento.type == pygame.KEYDOWN and evento.key == pygame.K_p:
                     estado = "playing"
 
+            elif estado in finais:
+                if finais[estado].handle_event(evento) == "back":
+                    audio.stop_sfx("game_over")
+                    audio.stop_sfx("victory")
+                    estado = "menu"
+                    menu.open()
+
             elif estado in telas_info:
                 if telas_info[estado].handle_event(evento) == "back":
                     estado = "menu"
@@ -567,11 +613,20 @@ def runGame():
             keys = pygame.key.get_pressed()
             resultado = atualizar_partida(partida, tela, dt, keys)
             if resultado == "vitoria":
-                estado = "vitoria"
-                telas_info["vitoria"].open()
+                estado = "final_bom"
+                finais[estado].open(tela)
+                audio.play_sfx("victory")
+            elif resultado == "derrota":
+                estado = "final_ruim"
+                finais[estado].open(tela)
+                audio.play_sfx("game_over")
+        elif estado in finais:
+            finais[estado].draw(tela, dt)
         elif estado in telas_info:
             telas_info[estado].draw(tela)
-        audio.update_state(estado, partida["fase_atual"] if partida else None)
+        boss_derrotado = (partida is not None and partida["fase_atual"] >= 4
+                          and not any(e.alive for e in partida["enemies"]))
+        audio.update_state(estado, partida["fase_atual"] if partida else None, boss_derrotado)
         pygame.display.flip()
 
     audio.shutdown()

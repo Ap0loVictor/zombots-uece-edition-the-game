@@ -113,6 +113,7 @@ class Player(Entity):
         self.dash_dy = dy * self.speed * self.dash_speed_multiplier
         self.dash_timer = self.dash_duration
         self.dash_cooldown_timer = self.dash_cooldown_duration
+        audio.play_sfx("player_dash")
 
     def _atualizar_sprite(self, dt):
         self.flip_x = False
@@ -335,3 +336,7 @@ class Player(Entity):
     @property
     def was_moving(self):
         return self.movement.was_moving
+
+    def heal(self, amount):
+        if self.alive:
+            self.health = min(self.max_health, self.health + amount)

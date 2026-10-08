@@ -18,25 +18,16 @@ def setPixel(superficie, x, y, cor):
     superficie.set_at((x, y), cor)
 
 def copiar_superficie(destino, origem, pos_x=0, pos_y=0):
-    matriz = pygame.surfarray.array3d(origem)
-
-    largura, altura = origem.get_size()
-    destino_largura, destino_altura = destino.get_size()
-
-    for y in range(altura):
-        dy = pos_y + y
-
-        if dy < 0 or dy >= destino_altura:
-            continue
-
-        for x in range(largura):
-            dx = pos_x + x
-
-            if dx < 0 or dx >= destino_largura:
-                continue
-
-            cor = matriz[x, y]
-            setPixel(destino, dx, dy, cor)
+    w, h = origem.get_size()
+    dw, dh = destino.get_size()
+    x0, y0 = max(0, pos_x), max(0, pos_y)
+    x1, y1 = min(dw, pos_x + w), min(dh, pos_y + h)
+    if x0 >= x1 or y0 >= y1:
+        return
+    src = pygame.surfarray.pixels3d(origem)
+    dst = pygame.surfarray.pixels3d(destino)
+    dst[x0:x1, y0:y1] = src[x0 - pos_x:x1 - pos_x, y0 - pos_y:y1 - pos_y]
+    del src, dst  # libera o lock das superfícies
 
 def bresenham(superficie, x0, y0, x1, y1, cor):
     x0, y0 = int(x0), int(y0)
@@ -84,47 +75,39 @@ def desenhar_poligono(superficie, pontos, cor_borda):
 def scanline_fill(superficie, pontos, cor_preenchimento):
     if not pontos:
         return
-        
+
+    xmin, ymin, xmax, ymax = area_visivel(superficie)
+    cor = tuple(cor_preenchimento)[:3]
     ys = [p[1] for p in pontos]
     y_min = int(min(ys))
     y_max = int(max(ys))
-
     n = len(pontos)
 
-    for y in range(y_min, y_max):
+    pixels = pygame.surfarray.pixels3d(superficie)
+    for y in range(max(y_min, ymin), min(y_max, ymax + 1)):
         intersecoes_x = []
 
         for i in range(n):
             x0, y0 = pontos[i]
             x1, y1 = pontos[(i + 1) % n]
 
-            # Ignora arestas horizontais
             if y0 == y1:
                 continue
-
-            # Garante y0 < y1
             if y0 > y1:
                 x0, y0, x1, y1 = x1, y1, x0, y0
-
-            # Regra Ymin <= y < Ymax
             if y < y0 or y >= y1:
                 continue
 
-            # Calcula interseção
-            x = x0 + (y - y0) * (x1 - x0) / (y1 - y0)
-            intersecoes_x.append(x)
+            intersecoes_x.append(x0 + (y - y0) * (x1 - x0) / (y1 - y0))
 
-        # Ordena interseções
         intersecoes_x.sort()
 
-        # Preenche entre pares
-        for i in range(0, len(intersecoes_x), 2):
-            if i + 1 < len(intersecoes_x):
-                x_inicio = int(round(intersecoes_x[i]))
-                x_fim = int(round(intersecoes_x[i + 1]))
-
-                for x in range(x_inicio, x_fim + 1):
-                    setPixel(superficie, x, y, cor_preenchimento)
+        for i in range(0, len(intersecoes_x) - 1, 2):
+            x_inicio = max(xmin, int(round(intersecoes_x[i])))
+            x_fim = min(xmax, int(round(intersecoes_x[i + 1])))
+            if x_inicio <= x_fim:
+                pixels[x_inicio:x_fim + 1, y] = cor  # span inteiro de uma vez
+    del pixels
 
 def scanline_texture(superficie, pontos, uvs, textura):
     """textura: matriz (altura, largura, 3|4); uvs em [0, 1], um por vértice."""
@@ -226,14 +209,26 @@ def desenhar_minimapa(superficie, beings, janela_mundo, viewport, cor_fundo, cor
             off_x, off_y, altura = being.sprite_box() if hasattr(being, "sprite_box") else (0, 0, being.height)
             vx, vy = mundo_viewport((being.x + off_x, being.y + off_y), janela_mundo, viewport)
             altura_minimapa = max(1, round(altura * sy))
-            draw_sprite_scaled(superficie, being.sprite.matrix, int(vx), int(vy), altura_minimapa)
+            draw_sprite_scaled(superficie, being.sprite.matrix, int(vx), int(vy), altura_minimapa,
+                               flip_x=getattr(being, "flip_x", False))
         else:
             for parte in being.get_polygons():
                 vertices_view = transforma_poligono(parte["vertices"], janela_mundo, viewport)
-                scanline_fill(superficie, vertices_view, parte["color"])
+                if not parte.get("contorno"):  # contorno: só a borda, sem preencher
+                    scanline_fill(superficie, vertices_view, parte["color"])
                 desenhar_poligono_recortado(superficie, vertices_view, parte["color"], viewport)
 
     clip_atual = None  # fora disso, o resto da cena seria recortado também
 
     borda = [(Vxmin, Vymin), (Vxmax, Vymin), (Vxmax, Vymax), (Vxmin, Vymax)]
     desenhar_poligono(superficie, borda, cor_borda)
+
+def area_visivel(superficie):
+    """(xmin, ymin, xmax, ymax) inclusivos: limites da superfície + clip_atual."""
+    xmin, ymin = 0, 0
+    xmax, ymax = superficie.get_width() - 1, superficie.get_height() - 1
+    if clip_atual is not None:
+        cx0, cy0, cx1, cy1 = clip_atual
+        xmin, ymin = max(xmin, int(cx0)), max(ymin, int(cy0))
+        xmax, ymax = min(xmax, int(cx1)), min(ymax, int(cy1))
+    return xmin, ymin, xmax, ymax
