@@ -10,12 +10,15 @@ ASSET_ROOT = Path(__file__).resolve().parents[2] / "assets" / "Audio"
 MUSIC = {
     "menu": "music/Menu/MusicMenu.ogg",
     "background": "music/Background/BackGroundMusic.ogg",
-    "miniboss": "music/MiniBoss/Fase5.ogg",
-    "finalboss": "music/FinalBoss/FinalBossMusic.ogg",
+    "miniboss": "music/MiniBoss/MiniBossMusic.ogg",
+    "finalboss": "music/FinalBoss/Final.ogg",
 }
+MUSIC_START = {"miniboss": 43.0}  # segundos em que a faixa começa a tocar
 SFX = {
     "player_punch": "sfx/Apolo/PlayersPunch.ogg",
     "hadouken": "sfx/Apolo/HadoukenSoundEffect.ogg",
+    "player_dash": "sfx/Dash/Dash.ogg",
+    "powerup": "sfx/Health/PowerUp.ogg",
     "player_damage_1": "sfx/Apolo/AudioDano01.ogg",
     "player_damage_2": "sfx/Apolo/AudioDano02.ogg",
     "player_death": "sfx/Apolo/ApoloDeath.ogg",
@@ -27,6 +30,8 @@ SFX = {
     "professor_attack": "sfx/Professor/BossEffect.ogg",
     "professor_special": "sfx/Professor/SPA.ogg",
     "professor_death": "sfx/Professor/GuyDeath.ogg",
+    "game_over": "sfx/Ending/Game_Over.ogg",
+    "victory": "sfx/Ending/Victory_Tune.ogg",
 }
 LOGGER = logging.getLogger(__name__)
 
@@ -81,6 +86,11 @@ class AudioManager:
                 if channel is not None:
                     channel.play(sound)
 
+    def stop_sfx(self, name):
+        sound = self.sounds.get(name)
+        if self.enabled and sound is not None:
+            sound.stop()
+
     def play_music(self, name):
         if not self.enabled or name == self.current_music:
             return
@@ -91,13 +101,13 @@ class AudioManager:
         try:
             pygame.mixer.music.load(str(ASSET_ROOT / MUSIC[name]))
             pygame.mixer.music.set_volume(self.music_volume)
-            pygame.mixer.music.play(loops=-1)
+            pygame.mixer.music.play(loops=-1, start=MUSIC_START.get(name, 0.0))
             self.current_music = name
         except (pygame.error, OSError) as exc:
             self._failed_music.add(name)
             LOGGER.warning("Não foi possível tocar %s: %s", name, exc)
 
-    def update_state(self, state, level_index=None):
+    def update_state(self, state, level_index=None, boss_defeated=False):
         """Recebe o índice da fase (0–5); mantém a faixa entre frames/fases iguais."""
         if not self.enabled:
             return
@@ -115,7 +125,12 @@ class AudioManager:
         if state in ("menu", "character_select", "controls", "credits", "settings"):
             track = "menu"
         elif state == "playing" and level_index in range(6):
-            track = "background" if level_index < 4 else ("miniboss" if level_index == 4 else "finalboss")
+            if level_index < 4:
+                track = "background"
+            elif boss_defeated:
+                track = None  # chefe derrotado: silêncio até a próxima fase
+            else:
+                track = "miniboss" if level_index == 4 else "finalboss"
         else:
             track = None
         self.play_music(track)

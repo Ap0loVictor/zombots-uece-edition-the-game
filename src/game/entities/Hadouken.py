@@ -88,14 +88,25 @@ class Hadouken:
             rx, ry = (int(18 - i * 3), int(10 - i * 2)) if horizontal else (int(10 - i * 2), int(18 - i * 3))
             elipse(tela, tx, ty, rx, ry, cor)
 
+        m, m2 = self._matrizes(cx, cy)
+        scanline_fill_gradiente(tela, aplica_transformacao(m, ESTRELA_EXTERNA), CORES_EXTERNA)
+        scanline_fill_gradiente(tela, aplica_transformacao(m2, ESTRELA_INTERNA), CORES_INTERNA)
+
+    def _matrizes(self, cx, cy):
         # Estrela externa: gira e "pulsa" (rotação + escala + translação, em matriz)
         pulso = 1.0 + 0.15 * math.sin(self.tempo * 18)
         m = multiplica_matrizes(
             translacao(cx, cy),
             multiplica_matrizes(rotacao(self.tempo * 9), escala(pulso, pulso)),
         )
-        scanline_fill_gradiente(tela, aplica_transformacao(m, ESTRELA_EXTERNA), CORES_EXTERNA)
-
         # Estrela interna: gira ao contrário
         m2 = multiplica_matrizes(translacao(cx, cy), rotacao(-self.tempo * 14))
-        scanline_fill_gradiente(tela, aplica_transformacao(m2, ESTRELA_INTERNA), CORES_INTERNA)
+        return m, m2
+
+    def get_polygons(self):  # usado pelo minimapa (coordenadas do mundo)
+        cx, cy = self.centro
+        m, m2 = self._matrizes(cx, cy)
+        return [
+            {"name": "externa", "vertices": aplica_transformacao(m, ESTRELA_EXTERNA), "color": (60, 140, 255)},
+            {"name": "interna", "vertices": aplica_transformacao(m2, ESTRELA_INTERNA), "color": (255, 240, 120)},
+        ]

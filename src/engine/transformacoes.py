@@ -1,7 +1,7 @@
 import math
 
 
-# Matrizes homogêneas 3x3 (código-base do professor, em docs/viewport.py)
+# Matrizes homogêneas 3x3
 
 def identidade():
     return [[1, 0, 0], [0, 1, 0], [0, 0, 1]]

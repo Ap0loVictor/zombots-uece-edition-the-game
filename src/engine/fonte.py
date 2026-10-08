@@ -1,4 +1,5 @@
-from src.engine.rendering import setPixel
+import pygame
+from src.engine.rendering import area_visivel, setPixel
 
 # Fonte bitmap 5x7: cada caractere é uma matriz de 7 linhas por 5 colunas,
 # onde "#" é pixel aceso e "." é pixel apagado.
@@ -92,9 +93,23 @@ def desenhar_caractere(superficie, caractere, x, y, cor, escala=1):
 
 def desenhar_texto(superficie, texto, x, y, cor, escala=1):
     # (x, y) é o canto superior esquerdo do texto
+    x, y = int(x), int(y)
     passo = (LARGURA_GLIFO + ESPACAMENTO) * escala
+    xmin, ymin, xmax, ymax = area_visivel(superficie)
+    cor = tuple(cor)[:3]
+
+    pixels = pygame.surfarray.pixels3d(superficie)
     for i, caractere in enumerate(texto.upper()):
-        desenhar_caractere(superficie, caractere, x + i * passo, y, cor, escala)
+        ox = x + i * passo
+        # Caracteres sem glifo ocupam espaço, mas não desenham nada
+        for coluna, linha in PIXELS_GLIFO.get(caractere, []):
+            px0 = max(xmin, ox + coluna * escala)
+            px1 = min(xmax + 1, ox + (coluna + 1) * escala)
+            py0 = max(ymin, y + linha * escala)
+            py1 = min(ymax + 1, y + (linha + 1) * escala)
+            if px0 < px1 and py0 < py1:
+                pixels[px0:px1, py0:py1] = cor  # bloco escala x escala de uma vez
+    del pixels
 
 
 def desenhar_texto_centralizado(superficie, texto, cx, cy, cor, escala=1):

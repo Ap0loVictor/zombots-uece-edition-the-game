@@ -9,7 +9,7 @@ os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 import pygame
 
-from src.engine.audio import AudioManager, MUSIC, SFX, audio
+from src.engine.audio import AudioManager, MUSIC, MUSIC_START, SFX, audio
 from src.game.entities.Enemy import Enemy
 from src.game.entities.Player import Player
 from src.game.entities.Villain import Professor, MrBlack
@@ -57,13 +57,22 @@ class AudioTests(unittest.TestCase):
             self.assertEqual(self.manager.current_music, "finalboss")
             self.assertEqual(play.call_count, 4)
             for call in play.call_args_list:
-                self.assertEqual(call.kwargs, {"loops": -1})
+                self.assertEqual(call.kwargs["loops"], -1)
+            self.assertEqual(play.call_args_list[2].kwargs["start"], MUSIC_START["miniboss"])
             self.manager.update_state("vitoria", 5)
             self.assertFalse(pygame.mixer.music.get_busy())
             self.manager.update_state("menu", 5)
             self.assertEqual(self.manager.current_music, "menu")
             self.manager.update_state("playing", 0)
             self.assertEqual(self.manager.current_music, "background")
+
+    def test_boss_music_stops_when_boss_is_defeated(self):
+        self.manager.update_state("playing", 4)
+        self.assertEqual(self.manager.current_music, "miniboss")
+        self.manager.update_state("playing", 4, True)
+        self.assertIsNone(self.manager.current_music)
+        self.manager.update_state("playing", 5, False)
+        self.assertEqual(self.manager.current_music, "finalboss")
 
     def test_pause_resumes_without_restarting_and_volumes_are_independent(self):
         self.manager.update_state("playing", 4)
@@ -145,6 +154,8 @@ class EventTests(unittest.TestCase):
         self.assertFalse(player.receive_damage(5))
         player.invincibility_remaining = 0
         player.start_dash()
+        self.play.assert_called_once_with("player_dash")
+        self.play.reset_mock()
         self.assertFalse(player.receive_damage(5))
         player.dash_timer = 0
         self.assertFalse(player.receive_damage(0))
