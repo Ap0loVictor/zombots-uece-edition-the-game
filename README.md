@@ -32,6 +32,11 @@ O projeto utiliza algoritmos próprios de Computação Gráfica para rasterizaç
 
 Em um mundo pós-apocalíptico, três estudantes — **Apolo**, **Marques** e **Jannsen** — descobrem que, para resolver tudo, precisam enfrentar **zumbis**, **robôs** e **zombots** para ter uma esperança de salvação.
 
+Prosfácio:
+Um doutor chamado Mr. Black fez um experimento de Grafos que deu errado, pois ele não entendia muito do conteúdo, aí os robôs inteligentes que receberiam esse algoritmo ficaram malignos e começaram a atacar civis, ele se aproveitou disso para aumentar sua influência e contratou um mercenário para ajudá-lo em seu projeto de dominar o mundo. O governo usou de um programa de super soldados para combater os robôs, mas isso acabou criando um vírus que gerou um apocalipse zumbi, Mr. Black usou os zumbis para deixar os robôs ainda mais fortes e conseguiu dominar o mundo.
+No entanto, 10 anos no futuro, a resistência conseguiu criar uma máquina do tempo para voltar e salvar o passado.
+Então, Apolo, Jannsen e Gabrielzito voltam no tempo para combater Mr. Black modificado e salvar o futuro.
+
 Mas, para chegar lá, terão de enfrentar os temíveis **Professor** (o Sub-Chefe) e **Mr. Black** (o Chefe Final).
 
 O desfecho depende do jogador: vencer o Mr. Black leva ao **final bom**; ser derrotado pelo Professor ou pelo Mr. Black leva ao **final ruim**.
