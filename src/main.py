@@ -513,8 +513,10 @@ def runGame():
             "",
             "COMPUTACAO GRAFICA - UECE",
         ]),
-        "settings": InfoScreen(width, height, "SETTINGS", [
-            "EM BREVE",
+        "story": InfoScreen(width, height, "HISTORY", [
+            "Um doutor chamado Mr. Black fez um experimento de Grafos que deu errado, pois ele não entendia muito do conteúdo, robôs inteligentes que receberiam esse algoritmo ficaram malignos e começaram a atacar civis, ele se aproveitou disso para aumentar sua influência e contratou um mercenário para ajudá-lo em seu projeto de dominar o mundo. O governo usou de um programa de super soldados para combater os robôs, mas isso acabou criando um vírus que gerou um apocalipse zumbi, Mr. Black usou os zumbis para deixar os robôs ainda mais fortes e conseguiu dominar o mundo.",
+            "No entanto, 10 anos no futuro, a resistência conseguiu criar uma máquina do tempo para voltar e salvar o passado.",
+            "Então, Apolo, Jannsen e Gabrielzito voltam no tempo para combater Mr. Black modificado e salvar o futuro.",
         ]),
     }
 
@@ -523,7 +525,7 @@ def runGame():
         "final_bom": EndingScreen(width, height, "assets/pxos/Endings/Final_Feliz.png.jpg"),
     }
 
-    # Estados possíveis: "menu", "playing", "paused", "controls", "credits", "settings"
+    # Estados possíveis: "menu", "playing", "paused", "controls", "credits", "História"
     estado = "intro"
     intro.open()
     partida = None

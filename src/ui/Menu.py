@@ -8,7 +8,7 @@ OPTIONS = [
     ("START", "start"),
     ("CONTROLS", "controls"),
     ("CREDITS", "credits"),
-    ("SETTINGS", "settings"),
+    ("HISTORY", "story"),
     ("EXIT", "exit"),
 ]
 
